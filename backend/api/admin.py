@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Employee, Department, Position
+
+from .models import Department, Employee, Position
 
 
 @admin.register(Employee)
@@ -7,6 +8,7 @@ class EmployeeAdmin(admin.ModelAdmin):
     list_display = ("first_name", "last_name", "email", "department", "position", "is_approved")
     list_filter = ("is_approved", "department", "position")
     search_fields = ("first_name", "last_name", "email")
+    list_per_page = 25
 
 
 @admin.register(Department)

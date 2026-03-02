@@ -1,14 +1,28 @@
 import secrets
 import string
+from http import HTTPStatus
 
-from rest_framework import status, viewsets
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import Employee, Department, Position
-from .serializers import EmployeeSerializer, DepartmentSerializer, PositionSerializer
+from .models import Department, Employee, Position
+from .serializers import DepartmentSerializer, EmployeeSerializer, PositionSerializer
+
+__all__ = [
+    "DepartmentViewSet",
+    "PositionViewSet",
+    "EmployeeViewSet",
+    "CurrentUserView",
+    "ChangePasswordView",
+]
+
+_UMLAUT_MAP = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
+_PASSWORD_ALPHABET = string.ascii_letters + string.digits + "!@#$%"
+_PASSWORD_LENGTH = 12
 
 
 class DepartmentViewSet(viewsets.ModelViewSet):
@@ -28,41 +42,39 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
     permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Request, *args, **kwargs) -> Response:
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        alphabet = string.ascii_letters + string.digits + "!@#$%"
-        password = "".join(secrets.choice(alphabet) for _ in range(12))
+        password = "".join(
+            secrets.choice(_PASSWORD_ALPHABET) for _ in range(_PASSWORD_LENGTH)
+        )
 
         employee = serializer.save()
 
         username = f"{employee.first_name}.{employee.last_name}".lower()
-        username = (
-            username.replace("ä", "ae")
-            .replace("ö", "oe")
-            .replace("ü", "ue")
-            .replace("ß", "ss")
-        )
+        username = username.translate(_UMLAUT_MAP)
 
-        user, created = User.objects.get_or_create(
+        user, _created = User.objects.get_or_create(
             username=username, defaults={"email": employee.email}
         )
         user.set_password(password)
         user.save()
 
         headers = self.get_success_headers(serializer.data)
-        response_data = dict(serializer.data)
-        response_data["initial_username"] = username
-        response_data["initial_password"] = password
+        response_data = {
+            **serializer.data,
+            "initial_username": username,
+            "initial_password": password,
+        }
 
-        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(response_data, status=HTTPStatus.CREATED, headers=headers)
 
 
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         return Response(
             {"username": request.user.username, "email": request.user.email}
         )
@@ -71,7 +83,7 @@ class CurrentUserView(APIView):
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         user = request.user
         old_password = request.data.get("old_password")
         new_password = request.data.get("new_password")
@@ -79,12 +91,10 @@ class ChangePasswordView(APIView):
         if not user.check_password(old_password):
             return Response(
                 {"detail": "Altes Passwort ist falsch."},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=HTTPStatus.BAD_REQUEST,
             )
 
         user.set_password(new_password)
         user.save()
 
-        return Response(
-            {"detail": "Passwort erfolgreich geändert."}, status=status.HTTP_200_OK
-        )
+        return Response({"detail": "Passwort erfolgreich geändert."})
