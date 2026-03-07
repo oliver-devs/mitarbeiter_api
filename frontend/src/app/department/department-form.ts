@@ -4,7 +4,8 @@ import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { EmployeeService, Department } from '../employee/employee';
+import { DepartmentService } from '../shared/department.service';
+import { Department } from '../shared/models';
 
 @Component({
     selector: 'app-department-form',
@@ -13,7 +14,7 @@ import { EmployeeService, Department } from '../employee/employee';
     styleUrl: './department-form.css',
 })
 export class DepartmentFormComponent {
-    private readonly service = inject(EmployeeService);
+    private readonly service = inject(DepartmentService);
     private readonly ref = inject(MatDialogRef<DepartmentFormComponent>);
     private readonly data = inject<Department>(MAT_DIALOG_DATA, { optional: true });
 

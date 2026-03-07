@@ -1,0 +1,93 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Abwesenheit bearbeiten' : 'Neue Abwesenheit' }}</h2>
+
+<mat-dialog-content>
+    <div class="form-container">
+        <mat-form-field appearance="outline">
+            <mat-label>Mitarbeiter</mat-label>
+            <mat-select [(ngModel)]="absence.employee" [disabled]="isEditMode">
+                @for (emp of employees; track emp.id) {
+                    <mat-option [value]="emp.id">
+                        {{ emp.first_name }} {{ emp.last_name }}
+                    </mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Typ</mat-label>
+            <mat-select [(ngModel)]="absence.absence_type">
+                <mat-option value="vacation">Urlaub</mat-option>
+                <mat-option value="sick">Krank</mat-option>
+                <mat-option value="homeoffice">Homeoffice</mat-option>
+                <mat-option value="other">Sonstiges</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <div class="date-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Von</mat-label>
+                <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" />
+                <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
+                <mat-datepicker #startPicker />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Bis</mat-label>
+                <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" />
+                <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
+                <mat-datepicker #endPicker />
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Notiz</mat-label>
+            <textarea matInput [(ngModel)]="absence.note" rows="2"></textarea>
+        </mat-form-field>
+
+        @if (isEditMode) {
+            <div class="status-section">
+                <span class="status-badge" [attr.data-status]="absence.status">
+                    {{ getStatusLabel() }}
+                </span>
+
+                @if ((absence.approvals_required ?? 1) > 1) {
+                    <span class="approval-progress">
+                        {{ absence.approval_count ?? 0 }} / {{ absence.approvals_required }} Genehmigungen
+                    </span>
+                }
+
+                @if (absence.approved_by_names?.length) {
+                    <span class="approved-by-info">
+                        Genehmigt von: {{ absence.approved_by_names!.join(', ') }}
+                    </span>
+                }
+
+                @if (showApprovalActions) {
+                    <div class="approval-actions">
+                        <button mat-flat-button class="approve-btn" (click)="approve()">
+                            Genehmigen
+                        </button>
+                        <button mat-flat-button class="deny-btn" (click)="deny()">
+                            Ablehnen
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Abbrechen</button>
+    @if (isEditMode) {
+        <button mat-button color="warn" (click)="delete()">Löschen</button>
+    }
+    <button
+        mat-flat-button
+        color="primary"
+        (click)="save()"
+        [disabled]="!absence.employee || !absence.absence_type || !startDate || !endDate"
+    >
+        Speichern
+    </button>
+</mat-dialog-actions>

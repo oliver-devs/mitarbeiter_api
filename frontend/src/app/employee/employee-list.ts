@@ -9,7 +9,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 
-import { EmployeeService, Employee } from './employee';
+import { EmployeeService } from '../shared/employee.service';
+import { Employee } from '../shared/models';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog';
 
 @Component({

@@ -11,7 +11,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { EmployeeService, Position } from '../employee/employee';
+import { PositionService } from '../shared/position.service';
+import { Position } from '../shared/models';
 import { AuthService } from '../auth/auth.service';
 import { PositionFormComponent } from './position-form';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog';
@@ -33,7 +34,7 @@ import { ConfirmDialogComponent } from '../shared/confirm-dialog';
     styleUrl: './settings.css',
 })
 export class SettingsComponent implements OnInit {
-    private readonly service = inject(EmployeeService);
+    private readonly service = inject(PositionService);
     private readonly authService = inject(AuthService);
     private readonly dialog = inject(MatDialog);
     private readonly snackBar = inject(MatSnackBar);

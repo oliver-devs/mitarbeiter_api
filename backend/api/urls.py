@@ -2,12 +2,19 @@ from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 
-from .views import ChangePasswordView, DepartmentViewSet, EmployeeViewSet, PositionViewSet
+from .views import (
+    AbsenceViewSet,
+    ChangePasswordView,
+    DepartmentViewSet,
+    EmployeeViewSet,
+    PositionViewSet,
+)
 
 router = DefaultRouter()
 router.register(r"employees", EmployeeViewSet)
 router.register(r"departments", DepartmentViewSet)
 router.register(r"positions", PositionViewSet)
+router.register(r"absences", AbsenceViewSet)
 
 urlpatterns = [
     path("login/", obtain_auth_token, name="login"),

@@ -11,7 +11,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialog } from '@angular/material/dialog';
 
-import { EmployeeService, Employee, Department, Position } from '../employee/employee';
+import { EmployeeService } from '../shared/employee.service';
+import { DepartmentService } from '../shared/department.service';
+import { PositionService } from '../shared/position.service';
+import { Employee, Department, Position } from '../shared/models';
 import { PasswordDialogComponent } from '../shared/password-dialog';
 
 @Component({
@@ -30,7 +33,9 @@ import { PasswordDialogComponent } from '../shared/password-dialog';
     styleUrl: './employee-form.css',
 })
 export class EmployeeFormComponent implements OnInit {
-    private readonly service = inject(EmployeeService);
+    private readonly employeeService = inject(EmployeeService);
+    private readonly departmentService = inject(DepartmentService);
+    private readonly positionService = inject(PositionService);
     private readonly router = inject(Router);
     private readonly route = inject(ActivatedRoute);
     private readonly snackBar = inject(MatSnackBar);
@@ -49,7 +54,7 @@ export class EmployeeFormComponent implements OnInit {
     });
 
     ngOnInit() {
-        forkJoin([this.service.getDepartments(), this.service.getPositions()]).subscribe(
+        forkJoin([this.departmentService.getDepartments(), this.positionService.getPositions()]).subscribe(
             ([depts, positions]) => {
                 this.departments.set(depts);
                 this.positions.set(positions);
@@ -64,7 +69,7 @@ export class EmployeeFormComponent implements OnInit {
     }
 
     loadEmployee(id: number) {
-        this.service.getEmployee(id).subscribe({
+        this.employeeService.getEmployee(id).subscribe({
             next: (data) => {
                 const empData = { ...data };
 
@@ -102,7 +107,7 @@ export class EmployeeFormComponent implements OnInit {
         const data = this.employee();
 
         if (this.isEditMode()) {
-            this.service.updateEmployee(data.id!, data).subscribe({
+            this.employeeService.updateEmployee(data.id!, data).subscribe({
                 next: () => this.goBack('Gespeichert!'),
                 error: (err) => {
                     console.error(err);
@@ -110,7 +115,7 @@ export class EmployeeFormComponent implements OnInit {
                 },
             });
         } else {
-            this.service.createEmployee(data).subscribe({
+            this.employeeService.createEmployee(data).subscribe({
                 next: (response) => {
                     const ref = this.dialog.open(PasswordDialogComponent, {
                         width: '450px',

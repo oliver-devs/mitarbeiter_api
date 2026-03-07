@@ -3,7 +3,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterModule } from '@angular/router';
-import { EmployeeService, Employee, Department } from '../employee/employee';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { EmployeeService } from '../shared/employee.service';
+import { DepartmentService } from '../shared/department.service';
+import { AbsenceService } from '../shared/absence.service';
+import { Employee, Department } from '../shared/models';
 import { AuthService, CurrentUser } from '../auth/auth.service';
 
 @Component({
@@ -13,13 +17,17 @@ import { AuthService, CurrentUser } from '../auth/auth.service';
     styleUrl: './dashboard.css',
 })
 export class DashboardComponent implements OnInit {
-    private readonly service = inject(EmployeeService);
+    private readonly employeeService = inject(EmployeeService);
+    private readonly departmentService = inject(DepartmentService);
+    private readonly absenceService = inject(AbsenceService);
     private readonly authService = inject(AuthService);
+    private readonly snackBar = inject(MatSnackBar);
 
     readonly totalEmployees = signal(0);
     readonly recentEmployees = signal<Employee[]>([]);
     readonly departments = signal<Department[]>([]);
     readonly currentUser = signal<CurrentUser | null>(null);
+    readonly onVacationCount = signal(0);
 
     readonly formattedName = computed(() => {
         const user = this.currentUser();
@@ -41,16 +49,37 @@ export class DashboardComponent implements OnInit {
             error: () => this.currentUser.set({ username: 'Gast', email: '' }),
         });
 
-        this.service.getEmployees().subscribe({
+        this.employeeService.getEmployees().subscribe({
             next: (data) => {
                 this.totalEmployees.set(data.length);
                 this.recentEmployees.set([...data].reverse().slice(0, 5));
             },
-            error: (err) => console.error('Fehler bei Mitarbeitern', err),
+            error: () =>
+                this.snackBar.open('Fehler beim Laden der Mitarbeiter.', 'OK', { duration: 4000 }),
         });
 
-        this.service.getDepartments().subscribe((data) => {
-            this.departments.set(data);
+        this.departmentService.getDepartments().subscribe({
+            next: (data) => this.departments.set(data),
+            error: () =>
+                this.snackBar.open('Fehler beim Laden der Abteilungen.', 'OK', { duration: 4000 }),
+        });
+
+        this.absenceService.getAbsences().subscribe({
+            next: (absences) => {
+                const today = new Date().toISOString().slice(0, 10);
+                const count = absences.filter(
+                    (a) =>
+                        a.absence_type === 'vacation' &&
+                        a.status === 'approved' &&
+                        a.start_date <= today &&
+                        a.end_date >= today,
+                ).length;
+                this.onVacationCount.set(count);
+            },
+            error: () =>
+                this.snackBar.open('Fehler beim Laden der Abwesenheiten.', 'OK', {
+                    duration: 4000,
+                }),
         });
     }
 }

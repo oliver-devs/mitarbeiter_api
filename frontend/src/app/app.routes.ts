@@ -1,82 +1,82 @@
 import { Routes } from '@angular/router';
-import { PlaceholderComponent } from './shared/placeholder';
-import { DashboardComponent } from './dashboard/dashboard';
-import { DepartmentListComponent } from './department/department-list';
-import { EmployeeListComponent } from './employee/employee-list';
-import { EmployeeFormComponent } from './employee/employee-form';
-import { LoginComponent } from './login/login';
-import { SettingsComponent } from './settings/settings';
 import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
-    { path: 'login', component: LoginComponent },
+    {
+        path: 'login',
+        loadComponent: () => import('./login/login').then((m) => m.LoginComponent),
+    },
     { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
     {
         path: 'dashboard',
-        component: DashboardComponent,
+        loadComponent: () => import('./dashboard/dashboard').then((m) => m.DashboardComponent),
         canActivate: [authGuard],
         data: { title: 'Dashboard Übersicht' },
     },
     {
         path: 'analytics',
-        component: PlaceholderComponent,
+        loadComponent: () => import('./shared/placeholder').then((m) => m.PlaceholderComponent),
         canActivate: [authGuard],
         data: { title: 'Statistiken & Reports' },
     },
     {
         path: 'list',
-        component: EmployeeListComponent,
+        loadComponent: () =>
+            import('./employee/employee-list').then((m) => m.EmployeeListComponent),
         canActivate: [authGuard],
     },
     {
         path: 'create',
-        component: EmployeeFormComponent,
+        loadComponent: () =>
+            import('./employee/employee-form').then((m) => m.EmployeeFormComponent),
         canActivate: [authGuard],
     },
     {
         path: 'edit/:id',
-        component: EmployeeFormComponent,
+        loadComponent: () =>
+            import('./employee/employee-form').then((m) => m.EmployeeFormComponent),
         canActivate: [authGuard],
     },
     {
         path: 'org-chart',
-        component: PlaceholderComponent,
+        loadComponent: () => import('./shared/placeholder').then((m) => m.PlaceholderComponent),
         canActivate: [authGuard],
         data: { title: 'Organigramm' },
     },
     {
         path: 'calendar',
-        component: PlaceholderComponent,
+        loadComponent: () => import('./calendar/calendar').then((m) => m.CalendarComponent),
         canActivate: [authGuard],
         data: { title: 'Urlaubsplaner & Kalender' },
     },
     {
         path: 'time-tracking',
-        component: PlaceholderComponent,
+        loadComponent: () => import('./shared/placeholder').then((m) => m.PlaceholderComponent),
         canActivate: [authGuard],
         data: { title: 'Zeiterfassung & Arbeitszeiten' },
     },
     {
         path: 'documents',
-        component: PlaceholderComponent,
+        loadComponent: () => import('./shared/placeholder').then((m) => m.PlaceholderComponent),
         canActivate: [authGuard],
         data: { title: 'Dokumentenverwaltung' },
     },
     {
         path: 'applicants',
-        component: PlaceholderComponent,
+        loadComponent: () => import('./shared/placeholder').then((m) => m.PlaceholderComponent),
         canActivate: [authGuard],
         data: { title: 'Bewerberverwaltung' },
     },
     {
         path: 'departments',
-        component: DepartmentListComponent,
+        loadComponent: () =>
+            import('./department/department-list').then((m) => m.DepartmentListComponent),
         canActivate: [authGuard],
     },
     {
         path: 'settings',
-        component: SettingsComponent,
+        loadComponent: () => import('./settings/settings').then((m) => m.SettingsComponent),
         canActivate: [authGuard],
         data: { title: 'System Einstellungen' },
     },

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Department, Employee, Position
+from .models import Absence, Department, Employee, Position
 
 
 @admin.register(Employee)
@@ -19,6 +19,13 @@ class DepartmentAdmin(admin.ModelAdmin):
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ("title", "description", "group")
-    list_filter = ("group",)
+    list_display = ("title", "description", "group", "can_approve", "requires_dual_approval")
+    list_filter = ("group", "can_approve", "requires_dual_approval")
     search_fields = ("title",)
+
+
+@admin.register(Absence)
+class AbsenceAdmin(admin.ModelAdmin):
+    list_display = ("employee", "absence_type", "start_date", "end_date", "status", "approvals_required")
+    list_filter = ("absence_type", "status", "start_date")
+    search_fields = ("employee__first_name", "employee__last_name")

@@ -1,0 +1,57 @@
+# =========================
+# SYSTEM & EDITOR
+# =========================
+.git/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+
+
+# =========================
+# ANGULAR / FRONTEND
+# =========================
+node_modules/
+dist/
+out/
+.angular/
+coverage/
+
+# Lock-Dateien (absolute Token-Fresser!):
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+
+
+# =========================
+# DJANGO / BACKEND
+# =========================
+venv/
+.venv/
+env/
+.env_*/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Datenbanken nie einlesen lassen (riesig und oft binär):
+db.sqlite3
+*.sqlite3
+
+# Mediendateien und gesammelte statische Dateien:
+media/
+staticfiles/
+
+
+
+# =========================
+# SECRETS & LOGS
+# =========================
+.env
+.env.*
+*.log
+pytest_cache/
+.coverage

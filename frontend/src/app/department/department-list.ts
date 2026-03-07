@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { EmployeeService, Department } from '../employee/employee';
+import { DepartmentService } from '../shared/department.service';
+import { Department } from '../shared/models';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,7 +18,7 @@ import { DepartmentFormComponent } from './department-form';
     styleUrl: './department-list.css',
 })
 export class DepartmentListComponent implements OnInit {
-    private readonly service = inject(EmployeeService);
+    private readonly service = inject(DepartmentService);
     private readonly dialog = inject(MatDialog);
     private readonly snackBar = inject(MatSnackBar);
 

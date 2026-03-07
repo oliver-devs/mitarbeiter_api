@@ -1,0 +1,90 @@
+<section class="calendar-container">
+    <header class="calendar-header">
+        <div class="nav-group">
+            <button mat-icon-button (click)="prevMonth()">
+                <mat-icon>chevron_left</mat-icon>
+            </button>
+            <h2>{{ monthName() }} {{ currentYear() }}</h2>
+            <button mat-icon-button (click)="nextMonth()">
+                <mat-icon>chevron_right</mat-icon>
+            </button>
+            <button mat-button (click)="goToToday()">Heute</button>
+
+            @if (canApprove() && pendingCount() > 0) {
+                <span class="pending-badge">
+                    {{ pendingCount() }} ausstehend
+                </span>
+            }
+        </div>
+
+        <div class="legend">
+            @for (entry of typeLegend; track entry.type) {
+                <div class="legend-item">
+                    <span class="legend-dot" [style.background-color]="entry.color"></span>
+                    {{ entry.label }}
+                </div>
+            }
+            <span class="legend-separator"></span>
+            @for (entry of statusLegend; track entry.status) {
+                <div class="legend-item">
+                    <span class="legend-dot" [attr.data-status]="entry.status"></span>
+                    {{ entry.label }}
+                </div>
+            }
+        </div>
+
+        <button mat-flat-button color="primary" (click)="openForm()">
+            <mat-icon>add</mat-icon>
+            Neue Abwesenheit
+        </button>
+    </header>
+
+    @if (hasError()) {
+        <div class="error-banner">
+            <mat-icon>error_outline</mat-icon>
+            Fehler beim Laden der Daten.
+            <button mat-button (click)="reload()">Erneut versuchen</button>
+        </div>
+    }
+
+    @if (isLoading()) {
+        <div class="loading-container">
+            <mat-spinner diameter="40" />
+        </div>
+    } @else {
+        <mat-card class="calendar-card">
+            <div class="calendar-grid">
+                <div class="kw-header">KW</div>
+                @for (day of weekdays; track day) {
+                    <div class="weekday-header">{{ day }}</div>
+                }
+
+                @for (week of calendarWeeks(); track week.kw + '-' + $index) {
+                    <div class="kw-cell">{{ week.kw }}</div>
+                    @for (day of week.days; track day.date.toISOString()) {
+                        <div
+                            class="day-cell"
+                            [class.other-month]="!day.isCurrentMonth"
+                            [class.today]="day.isToday"
+                        >
+                            <span class="day-number">{{ day.dayOfMonth }}</span>
+                            <div class="absence-bars">
+                                @for (abs of getAbsencesForDay(day.date); track abs.id) {
+                                    <div
+                                        class="absence-bar"
+                                        [attr.data-status]="abs.status"
+                                        [style.background-color]="getColor(abs.absence_type)"
+                                        [matTooltip]="getTooltip(abs)"
+                                        (click)="openForm(abs); $event.stopPropagation()"
+                                    >
+                                        {{ (abs.employee_name ?? '').split(' ')[0] }}
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </mat-card>
+    }
+</section>

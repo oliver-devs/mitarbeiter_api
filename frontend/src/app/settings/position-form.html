@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>{{ isEditMode() ? 'Position bearbeiten' : 'Neue Position' }}</h2>
+<h2 mat-dialog-title>{{ isEditMode ? 'Position bearbeiten' : 'Neue Position' }}</h2>
 
 <mat-dialog-content>
     <div class="form-container">
@@ -6,6 +6,14 @@
             <mat-label>Positionstitel</mat-label>
             <input matInput [(ngModel)]="pos.title" placeholder="z.B. Projektmanager" />
         </mat-form-field>
+
+        <mat-checkbox [(ngModel)]="pos.can_approve">
+            Kann Abwesenheiten genehmigen
+        </mat-checkbox>
+
+        <mat-checkbox [(ngModel)]="pos.requires_dual_approval">
+            4-Augen-Prinzip (2 Genehmigungen erforderlich)
+        </mat-checkbox>
     </div>
 </mat-dialog-content>
 

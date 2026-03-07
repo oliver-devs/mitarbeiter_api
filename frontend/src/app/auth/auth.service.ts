@@ -7,6 +7,8 @@ import { environment } from '../../environments/environment';
 export interface CurrentUser {
     username: string;
     email: string;
+    is_staff?: boolean;
+    can_approve?: boolean;
 }
 
 export interface ChangePasswordResponse {
