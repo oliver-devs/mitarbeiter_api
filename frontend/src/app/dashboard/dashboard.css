@@ -426,6 +426,93 @@ button:hover .edit-icon {
     color: var(--mat-sys-primary);
 }
 
+.time-tracking-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-block-end: 40px;
+    align-items: stretch;
+}
+
+@media (max-width: 900px) {
+    .time-tracking-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+.time-tracking-widget {
+    margin-block-end: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.recent-times-card {
+    border-radius: 16px !important;
+    background: var(--mat-sys-surface-container-low);
+    height: 100%;
+}
+
+.recent-times-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 0;
+}
+
+.recent-time-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--mat-sys-surface);
+    border-radius: 12px;
+    border: 1px solid var(--mat-sys-outline-variant);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        transform: translateX(4px);
+        background: var(--mat-sys-surface-container-high);
+    }
+}
+
+.date-col {
+    width: 100px;
+    .date {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--mat-sys-on-surface);
+    }
+}
+
+.time-range-col {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 0.9rem;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        opacity: 0.6;
+    }
+}
+
+.duration-col {
+    .duration-badge {
+        background: var(--mat-sys-primary-container);
+        color: var(--mat-sys-on-primary-container);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+}
+
 .empty-message {
     color: var(--mat-sys-on-surface-variant);
     text-align: center;

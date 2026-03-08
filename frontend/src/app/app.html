@@ -3,7 +3,11 @@
         <mat-sidenav mode="side" opened class="sidenav">
             <header class="sidenav-header">
                 <div class="branding-section">
-                    <img src="/company-logo.svg" alt="Company Logo" class="company-logo-small" />
+                    <img 
+                        [src]="companyService.companyData().logoUrl || '/company-logo.svg'" 
+                        alt="Company Logo" 
+                        class="company-logo-small" 
+                    />
                     <div class="branding-text">
                         <span class="company-title">{{ companyService.companyData().name }}</span>
                         <div class="software-info">

@@ -3,6 +3,7 @@ import { Injectable, signal } from '@angular/core';
 export interface CompanyData {
     name: string;
     softwareName: string;
+    logoUrl: string;
     vacationDays: number;
     workingHours: number;
 }
@@ -14,8 +15,9 @@ export class CompanyService {
     private readonly STORAGE_KEY = 'hrsys_company_data';
 
     readonly companyData = signal<CompanyData>({
-        name: 'Nexus Dynamics', // Default value
+        name: 'Nexus Dynamics',
         softwareName: 'ClockIn',
+        logoUrl: '/company-logo.svg',
         vacationDays: 30,
         workingHours: 40,
     });

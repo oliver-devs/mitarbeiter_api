@@ -54,37 +54,65 @@
         </div>
 
         <!-- ZEITERFASSUNG WIDGET -->
-        <mat-card class="time-tracking-widget" [class.is-active]="activeTimeEntry()">
-        <mat-card-content class="time-content">
-            <div class="time-info">
-                @if (activeTimeEntry()) {
-                    <div class="status-indicator active"></div>
-                    <div class="time-text">
-                        <h3>Dienst läuft</h3>
-                        <div class="timer">{{ workedTodayStr() }}</div>
+        <div class="time-tracking-section">
+            <mat-card class="time-tracking-widget" [class.is-active]="activeTimeEntry()">
+                <mat-card-content class="time-content">
+                    <div class="time-info">
+                        @if (activeTimeEntry()) {
+                            <div class="status-indicator active"></div>
+                            <div class="time-text">
+                                <h3>Dienst läuft</h3>
+                                <div class="timer">{{ workedTodayStr() }}</div>
+                            </div>
+                        } @else {
+                            <div class="status-indicator inactive"></div>
+                            <div class="time-text">
+                                <h3>Ausgestempelt</h3>
+                                <p>Bereit für den Arbeitstag?</p>
+                            </div>
+                        }
                     </div>
-                } @else {
-                    <div class="status-indicator inactive"></div>
-                    <div class="time-text">
-                        <h3>Ausgestempelt</h3>
-                        <p>Bereit für den Arbeitstag?</p>
-                    </div>
-                }
-            </div>
 
-            <div class="time-actions">
-                @if (activeTimeEntry()) {
-                    <button mat-flat-button color="warn" class="punch-btn punch-out" (click)="punchOut()">
-                        <mat-icon>stop_circle</mat-icon> Ausstempeln
-                    </button>
-                } @else {
-                    <button mat-flat-button color="primary" class="punch-btn punch-in" (click)="punchIn()">
-                        <mat-icon>play_circle</mat-icon> Einstempeln
-                    </button>
-                }
-            </div>
-        </mat-card-content>
-        </mat-card>
+                    <div class="time-actions">
+                        @if (activeTimeEntry()) {
+                            <button mat-flat-button color="warn" class="punch-btn punch-out" (click)="punchOut()">
+                                <mat-icon>stop_circle</mat-icon> Ausstempeln
+                            </button>
+                        } @else {
+                            <button mat-flat-button color="primary" class="punch-btn punch-in" (click)="punchIn()">
+                                <mat-icon>play_circle</mat-icon> Einstempeln
+                            </button>
+                        }
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            @if (completedEntries().length > 0) {
+                <mat-card class="recent-times-card">
+                    <mat-card-header>
+                        <mat-card-title>Letzte Einträge</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="recent-times-list">
+                            @for (entry of completedEntries(); track entry.id) {
+                                <div class="recent-time-item">
+                                    <div class="date-col">
+                                        <span class="date">{{ entry.date }}</span>
+                                    </div>
+                                    <div class="time-range-col">
+                                        <mat-icon>schedule</mat-icon>
+                                        <span>{{ formatTime(entry.start_time) }} – {{ formatTime(entry.end_time) }}</span>
+                                    </div>
+                                    <div class="duration-col">
+                                        <span class="duration-badge">{{ formatDuration(entry.start_time, entry.end_time) }}</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            }
+        </div>
 
         <div class="content-grid">
         <!-- Alle: Kollegen in der Abteilung -->

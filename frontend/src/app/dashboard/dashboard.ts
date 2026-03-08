@@ -38,6 +38,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return this.timeEntries().find(entry => !entry.end_time);
     });
 
+    readonly completedEntries = computed(() => {
+        return this.timeEntries()
+            .filter(entry => !!entry.end_time)
+            .slice(0, 5);
+    });
+
+    formatDuration(start: string, end: string | null | undefined): string {
+        if (!end) return '-';
+        const s = new Date(start).getTime();
+        const e = new Date(end).getTime();
+        const diffMs = e - s;
+        if (diffMs < 0) return '00:00';
+
+        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        return `${hours}h ${minutes}m`;
+    }
+
+    formatTime(dateStr: string | null | undefined): string {
+        if (!dateStr) return '-';
+        return new Date(dateStr).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    }
+
     readonly formattedName = computed(() => {
         const user = this.auth.currentUser();
         if (user?.first_name) return `${user.first_name} ${user.last_name}`;
@@ -183,7 +206,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.snackBar.open('Erfolgreich eingestempelt. Guten Start!', 'OK', { duration: 3000 });
             },
             error: (err) => {
-                this.snackBar.open(err.error?.detail?.[0] || 'Fehler beim Einstempeln', 'OK', { duration: 4000 });
+                const msg = err.error?.detail || err.error?.non_field_errors?.[0] || 'Fehler beim Einstempeln';
+                this.snackBar.open(msg, 'OK', { duration: 4000 });
             }
         });
     }
@@ -195,7 +219,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.snackBar.open('Erfolgreich ausgestempelt. Schönen Feierabend!', 'OK', { duration: 3000 });
             },
             error: (err) => {
-                this.snackBar.open(err.error?.detail?.[0] || 'Fehler beim Ausstempeln', 'OK', { duration: 4000 });
+                const msg = err.error?.detail || err.error?.non_field_errors?.[0] || 'Fehler beim Ausstempeln';
+                this.snackBar.open(msg, 'OK', { duration: 4000 });
             }
         });
     }

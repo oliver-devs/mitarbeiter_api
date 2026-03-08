@@ -15,7 +15,7 @@ export interface TimeEntry {
 @Injectable({ providedIn: 'root' })
 export class TimeService {
     private readonly http = inject(HttpClient);
-    private readonly apiUrl = `${environment.apiUrl}/time-entries/`;
+    private readonly apiUrl = `${environment.apiUrl}time-entries/`;
 
     getEntriesForEmployee(employeeId: number): Observable<TimeEntry[]> {
         return this.http.get<TimeEntry[]>(`${this.apiUrl}?employee=${employeeId}`);

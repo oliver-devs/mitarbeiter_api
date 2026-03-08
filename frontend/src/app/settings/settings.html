@@ -47,6 +47,16 @@
                                         />
                                         <mat-icon matPrefix class="field-icon">admin_panel_settings</mat-icon>
                                     </mat-form-field>
+
+                                    <mat-form-field appearance="outline" class="half-width">
+                                        <mat-label>Logo URL</mat-label>
+                                        <input
+                                            matInput
+                                            [(ngModel)]="companyData.logoUrl"
+                                            placeholder="z.B. /company-logo.svg"
+                                        />
+                                        <mat-icon matPrefix class="field-icon">image</mat-icon>
+                                    </mat-form-field>
                                 </div>
 
                                 <div class="form-row">

@@ -239,28 +239,47 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
             
         return qs
 
-    def perform_create(self, serializer):
-        employee = get_employee_for_user(self.request.user)
+    def create(self, request: Request, *args, **kwargs) -> Response:
+        employee = get_employee_for_user(request.user)
         if not employee:
-            raise PermissionDenied("Kein Mitarbeiterprofil gefunden.")
+            return Response(
+                {"detail": "Dein Benutzerkonto ist mit keinem Mitarbeiterprofil verknüpft."},
+                status=HTTPStatus.FORBIDDEN
+            )
             
         # Überprüfen ob es schon einen offenen Eintrag gibt
         open_entry = TimeEntry.objects.filter(employee=employee, end_time__isnull=True).first()
         if open_entry:
-            raise ValidationError("Es gibt bereits einen offenen Zeiteintrag. Bitte stempel dich erst aus.")
+            return Response(
+                {"detail": "Du bist bereits eingestempelt. Bitte stempel dich erst aus."},
+                status=HTTPStatus.BAD_REQUEST
+            )
             
+        # Manuelles Erstellen des Eintrags
+        entry = TimeEntry.objects.create(employee=employee)
+        
+        serializer = self.get_serializer(entry)
+        return Response(serializer.data, status=HTTPStatus.CREATED)
+
+    def perform_create(self, serializer):
+        # Wird durch die neue create-Methode nicht mehr primär genutzt,
+        # bleibt aber als Fallback/Best-Practice sauber.
+        employee = get_employee_for_user(self.request.user)
         serializer.save(employee=employee)
 
     @action(detail=False, methods=["post"])
     def punch_out(self, request: Request) -> Response:
         employee = get_employee_for_user(request.user)
         if not employee:
-            raise PermissionDenied("Kein Mitarbeiterprofil gefunden.")
+            print(f"DEBUG: No employee found for user {request.user}")
+            raise PermissionDenied("Dein Benutzerkonto ist mit keinem Mitarbeiterprofil verknüpft.")
             
         open_entry = TimeEntry.objects.filter(employee=employee, end_time__isnull=True).first()
         if not open_entry:
+            print(f"DEBUG: No open entry found to punch out for employee {employee}")
             raise ValidationError("Es gibt keinen offenen Zeiteintrag zum Ausstempeln.")
             
+        print(f"DEBUG: Punching out for entry {open_entry.id}")
         open_entry.end_time = timezone.now()
         open_entry.save()
         

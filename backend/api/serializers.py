@@ -70,7 +70,7 @@ class TimeEntrySerializer(serializers.ModelSerializer):
             "id", "employee", "employee_name", 
             "date", "start_time", "end_time",
         ]
-        read_only_fields = ["date", "start_time"]
+        read_only_fields = ["id", "date", "start_time", "employee", "employee_name"]
 
     def get_employee_name(self, obj: TimeEntry) -> str:
         return str(obj.employee)

@@ -62,6 +62,7 @@ export class SettingsComponent implements OnInit {
     companyData: CompanyData = {
         name: '',
         softwareName: 'ClockIn',
+        logoUrl: '',
         vacationDays: 30,
         workingHours: 40,
     };
