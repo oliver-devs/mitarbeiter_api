@@ -1,5 +1,6 @@
 .login-container {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100dvh;
@@ -14,6 +15,7 @@
 .login-grid {
     display: grid;
     grid-template-columns: minmax(0, 380px) minmax(0, 320px);
+    grid-template-rows: auto 1fr;
     gap: 24px;
 
     @media (max-width: 800px) {
@@ -27,13 +29,11 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
+    grid-row: 1 / -1;
 }
 
-.info-column {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    align-self: end;
+.info-card {
+    grid-row: 2;
 }
 
 /* Branding */
@@ -140,14 +140,13 @@
 }
 
 /* Info Card */
-.info-card {
+.login-info {
     background: color-mix(in srgb, var(--mat-sys-surface-container-lowest) 65%, transparent) !important;
     border: 1px dashed color-mix(in srgb, var(--mat-sys-outline-variant) 50%, transparent) !important;
     box-shadow: none !important;
     border-radius: 24px !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    flex: 1;
 }
 
 .info-content {
@@ -213,6 +212,7 @@
 
 /* Footer */
 .login-footer {
+    margin-block-start: 32px;
     font-size: 12px;
     font-weight: 400;
     color: var(--mat-sys-on-surface-variant);
