@@ -31,8 +31,8 @@ export class CompanyService {
         if (stored) {
             try {
                 this.companyData.set(JSON.parse(stored));
-            } catch (e) {
-                console.error('Failed to parse company data from storage', e);
+            } catch {
+                localStorage.removeItem(this.STORAGE_KEY);
             }
         }
     }

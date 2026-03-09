@@ -1,19 +1,20 @@
 /* Globale Styles */
 
-/* Semantische Status-Farben */
+/* Semantische Status-Farben (light-dark CSS 2025) */
 :root {
-    --app-status-success: #2e7d32;
-    --app-status-success-container: #e8f5e9;
-    --app-status-warning: #f57c00;
-    
+    --app-status-success: light-dark(#2e7d32, #66bb6a);
+    --app-status-success-container: light-dark(#e8f5e9, #1b3a1b);
+    --app-status-warning: light-dark(#f57c00, #ffb74d);
+
     /* Modern Enterprise Font Stack */
     --app-font-family: 'Inter', 'Roboto', 'Helvetica Neue', sans-serif;
+
+    /* Scrollbar-Styling */
+    scrollbar-color: var(--mat-sys-outline-variant) transparent;
 }
 
 html.dark {
-    --app-status-success: #66bb6a;
-    --app-status-success-container: #1b3a1b;
-    --app-status-warning: #ffb74d;
+    color-scheme: dark;
 }
 
 body {
@@ -33,10 +34,6 @@ mat-card {
 }
 
 /* Scrollbar-Styling */
-:root {
-    scrollbar-color: var(--mat-sys-outline-variant) transparent;
-}
-
 *::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -49,4 +46,180 @@ mat-card {
 
 *::-webkit-scrollbar-track {
     background: transparent;
+}
+
+/* --- Global Page Header --- */
+.page-header {
+    margin-block-end: 40px;
+
+    h1 {
+        margin: 0;
+        font-size: 2.25rem;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        color: var(--mat-sys-on-surface);
+    }
+
+    .subtitle {
+        font-size: 1.125rem;
+        font-weight: 200;
+        color: var(--mat-sys-on-surface-variant);
+        margin: 12px 0 0;
+        letter-spacing: 0.02em;
+    }
+}
+
+.header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.highlight-text {
+    background: linear-gradient(135deg, var(--mat-sys-primary) 0%, var(--mat-sys-tertiary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+/* --- Global Info Cards --- */
+.info-card {
+    background: var(--mat-sys-surface-container-low) !important;
+    border-radius: 24px !important;
+    box-shadow: none !important;
+    border: 1px solid var(--mat-sys-outline-variant) !important;
+    height: fit-content;
+}
+
+.info-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px !important;
+
+    h3 {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--mat-sys-on-surface);
+    }
+
+    p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--mat-sys-on-surface-variant);
+        line-height: 1.5;
+    }
+}
+
+.info-icon {
+    font-size: 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    color: var(--mat-sys-primary);
+    margin-block-end: 16px;
+    opacity: 0.7;
+}
+
+/* --- Global ::ng-deep replacements (Material component overrides) --- */
+
+/* Sidenav drawer scrollbar (app component) */
+.mat-drawer-inner-container {
+    overflow-x: hidden !important;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s ease;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: transparent;
+        border-radius: 4px;
+    }
+}
+
+.sidenav:hover .mat-drawer-inner-container {
+    scrollbar-color: var(--mat-sys-outline-variant) transparent;
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--mat-sys-outline-variant);
+
+        &:hover {
+            background-color: var(--mat-sys-outline);
+        }
+    }
+}
+
+/* View toggle buttons (calendar + employee-list) */
+.view-toggle {
+    .mat-button-toggle-button {
+        padding-inline: 24px;
+        height: 54px;
+    }
+
+    .mat-button-toggle-label-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        line-height: 54px;
+        font-weight: 600;
+        color: var(--mat-sys-on-surface-variant);
+    }
+
+    .mat-button-toggle-checked {
+        background-color: var(--mat-sys-primary-container) !important;
+        color: var(--mat-sys-on-primary-container) !important;
+
+        .mat-button-toggle-label-content {
+            color: var(--mat-sys-on-primary-container) !important;
+        }
+    }
+}
+
+/* Search field (employee-list) */
+.search-field {
+    .mat-mdc-form-field-subscript-wrapper {
+        display: none !important;
+    }
+
+    .mat-mdc-text-field-wrapper {
+        height: 56px !important;
+        background-color: var(--mat-sys-surface) !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .mat-mdc-form-field-flex {
+        height: 100% !important;
+        align-items: center !important;
+    }
+}
+
+/* Accordion panels (employee-list) */
+.mat-accordion .mat-expansion-panel {
+    box-shadow: none !important;
+    border: 1px solid var(--mat-sys-outline-variant) !important;
+    border-radius: 16px !important;
+    margin-block-end: 16px !important;
+    background-color: var(--mat-sys-surface) !important;
+}
+
+.mat-expansion-panel-header {
+    height: 64px !important;
+}
+
+.mat-expansion-panel-header-title {
+    font-weight: 600;
+}
+
+/* Tab header (settings) */
+.mat-mdc-tab-header {
+    margin-block-end: 24px;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
 }

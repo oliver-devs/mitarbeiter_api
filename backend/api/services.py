@@ -18,12 +18,14 @@ def get_employee_for_user(user: User) -> Employee | None:
 def user_is_management(user: User) -> bool:
     if user.is_staff:
         return True
-    emp = get_employee_for_user(user)
-    return bool(emp and emp.position and emp.position.is_management)
+    if emp := get_employee_for_user(user):
+        return bool(emp.position and emp.position.is_management)
+    return False
 
 
 def user_can_approve(user: User) -> bool:
     if user_is_management(user):
         return True
-    emp = get_employee_for_user(user)
-    return bool(emp and emp.position and emp.position.can_approve)
+    if emp := get_employee_for_user(user):
+        return bool(emp.position and emp.position.can_approve)
+    return False

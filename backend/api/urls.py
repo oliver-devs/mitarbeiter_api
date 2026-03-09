@@ -10,14 +10,16 @@ from .views import (
     EmployeeViewSet,
     PositionViewSet,
     TimeEntryViewSet,
+    TimeCorrectionRequestViewSet,
 )
 
 router = DefaultRouter()
-router.register(r"employees", EmployeeViewSet)
-router.register(r"departments", DepartmentViewSet)
+router.register(r"departments", DepartmentViewSet, basename="department")
 router.register(r"positions", PositionViewSet, basename="position")
-router.register(r"absences", AbsenceViewSet)
+router.register(r"employees", EmployeeViewSet, basename="employee")
+router.register(r"absences", AbsenceViewSet, basename="absence")
 router.register(r"time-entries", TimeEntryViewSet, basename="timeentry")
+router.register(r"time-corrections", TimeCorrectionRequestViewSet, basename="timecorrection")
 
 urlpatterns = [
     path("login/", obtain_auth_token, name="login"),

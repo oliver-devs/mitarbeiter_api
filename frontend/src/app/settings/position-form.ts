@@ -47,8 +47,7 @@ export class PositionFormComponent {
 
         request.subscribe({
             next: () => this.ref.close(true),
-            error: (err) => {
-                console.error(err);
+            error: () => {
                 this.snackBar.open('Fehler beim Speichern der Position.', 'OK', { duration: 4000 });
             },
         });

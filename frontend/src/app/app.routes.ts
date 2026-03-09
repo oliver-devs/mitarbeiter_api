@@ -18,7 +18,7 @@ export const routes: Routes = [
         path: 'list',
         loadComponent: () =>
             import('./employee/employee-list').then((m) => m.EmployeeListComponent),
-        canActivate: [authGuard, staffGuard],
+        canActivate: [authGuard],
     },
     {
         path: 'create',
@@ -35,6 +35,11 @@ export const routes: Routes = [
     {
         path: 'calendar',
         loadComponent: () => import('./calendar/calendar').then((m) => m.CalendarComponent),
+        canActivate: [authGuard],
+    },
+    {
+        path: 'time-tracking',
+        loadComponent: () => import('./time-tracking/time-tracking').then((m) => m.TimeTrackingComponent),
         canActivate: [authGuard],
     },
     {

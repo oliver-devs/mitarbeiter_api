@@ -18,40 +18,11 @@ body {
 .sidenav {
     width: 280px;
     background-color: var(--mat-sys-surface);
-    border-right: none;
+    border-inline-end: none;
     box-shadow: 4px 0 24px rgb(0 0 0 / 8%);
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
-}
-
-::ng-deep .mat-drawer-inner-container {
-    overflow-x: hidden !important;
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-    transition: scrollbar-color 0.3s ease;
-
-    &::-webkit-scrollbar {
-        width: 6px;
-        background: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background-color: transparent;
-        border-radius: 4px;
-    }
-}
-
-.sidenav:hover ::ng-deep .mat-drawer-inner-container {
-    scrollbar-color: var(--mat-sys-outline-variant) transparent;
-
-    &::-webkit-scrollbar-thumb {
-        background-color: var(--mat-sys-outline-variant);
-
-        &:hover {
-            background-color: var(--mat-sys-outline);
-        }
-    }
 }
 
 .sidenav-header {
@@ -73,7 +44,7 @@ body {
 
 .company-logo-small {
     width: 44px;
-    height: 44px;
+    aspect-ratio: 1;
     flex-shrink: 0;
 }
 
@@ -124,21 +95,40 @@ body {
     border-radius: 12px;
     border: 1px solid var(--mat-sys-outline-variant);
     transition: background-color 0.2s ease;
-}
 
-.user-section:hover {
-    background-color: var(--mat-sys-surface-container);
+    &:hover {
+        background-color: var(--mat-sys-surface-container);
+    }
 }
 
 .user-avatar-container {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 36px;
-    height: 36px;
+    aspect-ratio: 1;
     background-color: var(--mat-sys-primary-container);
     color: var(--mat-sys-on-primary-container);
     border-radius: 50%;
+}
+
+.sidebar-status-dot {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-end: 0;
+    width: 12px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid var(--mat-sys-surface-container);
+    z-index: 2;
+
+    &[data-status='online'] { background-color: #4caf50; box-shadow: 0 0 8px rgba(76, 175, 80, 0.5); }
+    &[data-status='break'] { background-color: #fbc02d; }
+    &[data-status='busy'] { background-color: #ff9800; }
+    &[data-status='offline'] { background-color: var(--mat-sys-outline-variant); }
+    &[data-status='sick'],
+    &[data-status='vacation'] { background-color: #ef5350; }
 }
 
 .user-avatar {
@@ -188,7 +178,7 @@ body {
         width: calc(100% - 24px);
         background: transparent;
         border: none;
-        text-align: left;
+        text-align: start;
         cursor: pointer;
         font-family: inherit;
         font-size: 1rem;
@@ -236,7 +226,7 @@ mat-divider {
     &:hover {
         background-color: var(--mat-sys-error-container) !important;
         color: var(--mat-sys-on-error-container) !important;
-        
+
         mat-icon {
             color: var(--mat-sys-on-error-container) !important;
         }

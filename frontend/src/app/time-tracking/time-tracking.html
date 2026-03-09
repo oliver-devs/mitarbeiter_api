@@ -1,0 +1,150 @@
+<section class="time-tracking-container">
+    <header class="page-header">
+        <h1>Zeiterfassung</h1>
+        <p class="subtitle">Verwalte deine Arbeitszeiten und behalte die gesetzlichen Regelungen im Blick.</p>
+    </header>
+
+    <div class="tracking-grid">
+        
+        <!-- LINKE SPALTE: Steuerung & Statistiken -->
+        <div class="tracking-main">
+            
+            <!-- Aktive Zeiterfassung -->
+            @let entry = activeTimeEntry();
+            @let onBreak = activeBreak();
+            <mat-card class="action-card" [class.is-active]="entry">
+                <mat-card-content>
+                    <div class="status-header">
+                        <div class="status-info">
+                            <span class="status-label">Aktueller Status</span>
+                            <h2 class="status-value">
+                                @if (onBreak) { In Pause }
+                                @else if (entry) { Im Dienst }
+                                @else { Nicht im Dienst }
+                            </h2>
+                        </div>
+                        <div class="timer-display">
+                            <div class="timer-large">{{ formatMs(workedTodayMs()) }}</div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        @if (!entry) {
+                            <button mat-flat-button color="primary" class="large-btn" (click)="punchIn()">
+                                <mat-icon>play_circle</mat-icon> Einstempeln
+                            </button>
+                        } @else {
+                            @if (onBreak) {
+                                <button mat-flat-button color="primary" class="large-btn" (click)="endBreak()">
+                                    <mat-icon>play_circle</mat-icon> Pause beenden
+                                </button>
+                            } @else {
+                                <button mat-stroked-button class="large-btn" (click)="startBreak()">
+                                    <mat-icon>pause_circle</mat-icon> Pause starten
+                                </button>
+                                <button mat-flat-button color="warn" class="large-btn" (click)="punchOut()">
+                                    <mat-icon>stop_circle</mat-icon> Ausstempeln
+                                </button>
+                            }
+                        }
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Statistiken -->
+            <div class="stats-row">
+                <mat-card class="stat-card">
+                    <mat-card-content>
+                        <div class="stat-label">Diese Woche</div>
+                        <div class="stat-value">{{ formatMs(weeklyWorkedMs()) }}</div>
+                        <div class="stat-meta">von {{ company.companyData().workingHours }}h Soll</div>
+                    </mat-card-content>
+                </mat-card>
+                <mat-card class="stat-card">
+                    <mat-card-content>
+                        <div class="stat-label">Diesen Monat</div>
+                        <div class="stat-value">{{ formatMs(monthlyWorkedMs()) }}</div>
+                        <div class="stat-meta">Netto-Arbeitszeit</div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+
+            <!-- Detailliertes Protokoll -->
+            <mat-card class="history-card">
+                <mat-card-header>
+                    <mat-card-title>Arbeitsprotokoll</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="history-list">
+                        @for (entry of timeEntries(); track entry.id) {
+                            <div class="history-item">
+                                <div class="item-date">
+                                    <span class="day">{{ formatDate(entry.date) }}</span>
+                                </div>
+                                <div class="item-times">
+                                    <mat-icon>schedule</mat-icon>
+                                    <span>{{ formatTime(entry.start_time) }} – {{ formatTime(entry.end_time || undefined) }}</span>
+                                </div>
+                                <div class="item-breaks">
+                                    @if (calculateBreakMinutes(entry.breaks) > 0) {
+                                        <span class="break-badge">{{ calculateBreakMinutes(entry.breaks) }}m Pause</span>
+                                    }
+                                </div>
+                                <div class="item-duration">
+                                    <strong>{{ formatMs(getEntryNetDurationMs(entry)) }}</strong>
+                                </div>
+                            </div>
+                        } @empty {
+                            <p class="empty-msg">Noch keine Zeiteinträge vorhanden.</p>
+                        }
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <!-- RECHTE SPALTE: Gesetzliche Hinweise & Tipps -->
+        <div class="tracking-sidebar">
+            
+            <mat-card class="info-card">
+                <mat-card-content class="info-content">
+                    <!-- Sektion 1: Regeln -->
+                    <div class="info-section">
+                        <mat-icon class="info-icon">gavel</mat-icon>
+                        <h3>Gesetzliche Regeln</h3>
+                        <ul class="legal-list">
+                            <li>
+                                <strong>Pausenpflicht:</strong>
+                                <p>Ab 6 Std. Arbeit sind 30 Min. Pause gesetzlich vorgeschrieben. Ab 9 Std. sogar 45 Min.</p>
+                            </li>
+                            <li>
+                                <strong>Ruhezeit:</strong>
+                                <p>Zwischen Feierabend und dem nächsten Dienst müssen mindestens 11 Std. Ruhezeit liegen.</p>
+                            </li>
+                            <li>
+                                <strong>Höchstarbeitszeit:</strong>
+                                <p>Die tägliche Arbeitszeit darf 10 Std. (Netto) nicht überschreiten.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <mat-divider class="section-divider"></mat-divider>
+
+                    <!-- Sektion 2: Tipps -->
+                    <div class="info-section">
+                        <mat-icon class="info-icon">lightbulb</mat-icon>
+                        <h3>Tipps für dich</h3>
+                        <div class="tip-item">
+                            <mat-icon>history</mat-icon>
+                            <p>Hast du vergessen zu stempeln? Nutze den Korrektur-Button (demnächst verfügbar).</p>
+                        </div>
+                        <div class="tip-item">
+                            <mat-icon>coffee</mat-icon>
+                            <p>Kleine Bildschirmpausen alle 60 Min. fördern die Konzentration und Gesundheit.</p>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+        </div>
+    </div>
+</section>

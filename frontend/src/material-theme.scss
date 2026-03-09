@@ -1,6 +1,176 @@
 @use '@angular/material' as mat;
 
-// --- Base Theme (Azure) ---
+// --- Gedämpfte Custom-Paletten ---
+
+$muted-navy-palette: (
+  0: #000000, 10: #121821, 20: #223044, 25: #2b3c55, 30: #334866,
+  35: #3b5478, 40: #436089, 50: #5378ac, 60: #7c98c0, 70: #a3b6d1,
+  80: #c6d1e2, 90: #e4eaf1, 95: #f0f3f7, 98: #f9f9ff, 99: #fdfbff, 100: #ffffff,
+  secondary: (
+    0: #000000, 10: #16191d, 20: #2b323b, 25: #353e4b, 30: #3f4a5a,
+    35: #495769, 40: #546378, 50: #697c96, 60: #8d9baf, 70: #aeb8c6,
+    80: #ccd2db, 90: #e7eaee, 95: #f2f4f7, 98: #f9f9fc, 99: #fdfbff, 100: #ffffff,
+  ),
+  neutral: (
+    0: #000000, 10: #1a1b1f, 20: #2f3033, 25: #3b3b3f, 30: #46464a,
+    35: #525256, 40: #5e5e62, 50: #77777a, 60: #919094, 70: #ababaf,
+    80: #c7c6ca, 90: #e3e2e6, 95: #f2f0f4, 98: #faf9fd, 99: #fdfbff, 100: #ffffff,
+  ),
+  neutral-variant: (
+    0: #000000, 10: #181c22, 20: #2d3038, 25: #383b43, 30: #44474e,
+    35: #4f525a, 40: #5b5e66, 50: #74777f, 60: #8e9099, 70: #a9abb4,
+    80: #c4c6d0, 90: #e0e2ec, 95: #eff0fa, 98: #f9f9ff, 99: #fdfbff, 100: #ffffff,
+  ),
+);
+
+$muted-teal-palette: (
+  0: #000000, 10: #0d201e, 20: #1a3f3c, 25: #214f4b, 30: #285f5b,
+  35: #306f6a, 40: #387f7a, 50: #479f99, 60: #72b5b0, 70: #9dccc8,
+  80: #c3dfdd, 90: #e2f0ef, 95: #f0f7f6, 98: #f7fbfb, 99: #fbfdfd, 100: #ffffff,
+  secondary: (
+    0: #000000, 10: #151d1c, 20: #293937, 25: #334745, 30: #3d5553,
+    35: #476361, 40: #51716f, 50: #668d8b, 60: #88a7a5, 70: #aabfbd,
+    80: #cad6d5, 90: #e6eceb, 95: #f1f5f5, 98: #f8fafa, 99: #fbfdfd, 100: #ffffff,
+  ),
+  neutral: (
+    0: #000000, 10: #1a1c1c, 20: #2f3333, 25: #3b3f3f, 30: #464b4b,
+    35: #525757, 40: #5e6363, 50: #777c7c, 60: #919696, 70: #ababab,
+    80: #c7caca, 90: #e3e5e5, 95: #f2f3f3, 98: #fafafa, 99: #fdfdfd, 100: #ffffff,
+  ),
+  neutral-variant: (
+    0: #000000, 10: #181d1d, 20: #2d3434, 25: #383f3f, 30: #434b4b,
+    35: #4f5757, 40: #5b6363, 50: #747d7d, 60: #8e9797, 70: #a9b0b0,
+    80: #c4caca, 90: #e0e5e5, 95: #eff2f2, 98: #f9fafa, 99: #fdfdfd, 100: #ffffff,
+  ),
+);
+
+$muted-forest-palette: (
+  0: #000000, 10: #0e1f12, 20: #1c3e25, 25: #234e2e, 30: #2a5e38,
+  35: #316e42, 40: #387e4c, 50: #469e5f, 60: #6fb686, 70: #9acbaa,
+  80: #c1decc, 90: #e1efe7, 95: #f0f7f2, 98: #f7fbf9, 99: #fbfdfc, 100: #ffffff,
+  secondary: (
+    0: #000000, 10: #151d17, 20: #29392d, 25: #334737, 30: #3d5542,
+    35: #47634d, 40: #517158, 50: #668d6e, 60: #88a78e, 70: #aabfaf,
+    80: #cad6cd, 90: #e6ece8, 95: #f1f5f2, 98: #f8faf9, 99: #fbfdfc, 100: #ffffff,
+  ),
+  neutral: (
+    0: #000000, 10: #1a1c1a, 20: #2f332f, 25: #3b3f3b, 30: #464b46,
+    35: #525752, 40: #5e635e, 50: #777c77, 60: #919691, 70: #ababab,
+    80: #c7cac7, 90: #e3e5e3, 95: #f2f3f2, 98: #fafafa, 99: #fdfdfd, 100: #ffffff,
+  ),
+  neutral-variant: (
+    0: #000000, 10: #181c18, 20: #2d3430, 25: #383f3a, 30: #434b45,
+    35: #4f5751, 40: #5b635d, 50: #747d76, 60: #8e9790, 70: #a9b0aa,
+    80: #c4cac5, 90: #e0e5e1, 95: #eff2f0, 98: #f9faf9, 99: #fdfdfd, 100: #ffffff,
+  ),
+);
+
+$muted-olive-palette: (
+  0: #000000, 10: #191e0e, 20: #323c1c, 25: #3f4c23, 30: #4c5b2a,
+  35: #596b31, 40: #667a38, 50: #809946, 60: #9fb36e, 70: #bbca96,
+  80: #d4debb, 90: #eaefe0, 95: #f3f6ee, 98: #f9faf7, 99: #fcfcfb, 100: #ffffff,
+  secondary: (
+    0: #000000, 10: #1a1d15, 20: #333929, 25: #404733, 30: #4d553d,
+    35: #5a6347, 40: #677152, 50: #818d67, 60: #9da789, 70: #b7bfa9,
+    80: #d0d6c8, 90: #e8ece4, 95: #f3f5f0, 98: #f9faf8, 99: #fcfcfb, 100: #ffffff,
+  ),
+  neutral: (
+    0: #000000, 10: #1b1b19, 20: #30332f, 25: #3c3f3b, 30: #484b47,
+    35: #545753, 40: #60635f, 50: #787c76, 60: #919690, 70: #abafaa,
+    80: #c7cac6, 90: #e3e5e2, 95: #f2f3f1, 98: #fafaf9, 99: #fdfdfc, 100: #ffffff,
+  ),
+  neutral-variant: (
+    0: #000000, 10: #1a1c17, 20: #2f342d, 25: #3b4038, 30: #464c43,
+    35: #52584f, 40: #5e645b, 50: #767e73, 60: #90988d, 70: #aab0a7,
+    80: #c5c9c2, 90: #e1e4df, 95: #f0f2ee, 98: #f9f9f8, 99: #fdfdfc, 100: #ffffff,
+  ),
+);
+
+$muted-lavender-palette: (
+  0: #000000, 10: #150e20, 20: #2a1c40, 25: #342350, 30: #3f2a61,
+  35: #493172, 40: #543882, 50: #6946a3, 60: #8d6fba, 70: #ae97cd,
+  80: #ccbdde, 90: #e7dfef, 95: #f2eef7, 98: #f9f7fc, 99: #fcfbfe, 100: #ffffff,
+  secondary: (
+    0: #000000, 10: #19161e, 20: #312b3b, 25: #3d354a, 30: #493f59,
+    35: #554968, 40: #615477, 50: #7a6994, 60: #978bac, 70: #b2aac2,
+    80: #ccc7d7, 90: #e7e4ec, 95: #f2f0f5, 98: #f9f8fb, 99: #fcfbfe, 100: #ffffff,
+  ),
+  neutral: (
+    0: #000000, 10: #1a1a1e, 20: #2f2f34, 25: #3b3b40, 30: #46464c,
+    35: #525258, 40: #5e5e64, 50: #77777e, 60: #919098, 70: #ababaf,
+    80: #c7c6cb, 90: #e3e2e7, 95: #f2f0f5, 98: #faf9fd, 99: #fdfbff, 100: #ffffff,
+  ),
+  neutral-variant: (
+    0: #000000, 10: #19181e, 20: #2e2d34, 25: #393840, 30: #44434c,
+    35: #504f58, 40: #5c5b64, 50: #74737e, 60: #8e8d98, 70: #a9a8b0,
+    80: #c4c3cb, 90: #e0dfe6, 95: #efeff5, 98: #f9f9fd, 99: #fdfbff, 100: #ffffff,
+  ),
+);
+
+$muted-coral-palette: (
+  0: #000000, 10: #220e0c, 20: #441c18, 25: #56231e, 30: #682a24,
+  35: #7a312b, 40: #8c3831, 50: #b0463e, 60: #c47068, 70: #d49993,
+  80: #e3bfbb, 90: #f1dfdd, 95: #f7eeee, 98: #fbf7f7, 99: #fdfbfb, 100: #ffffff,
+  secondary: (
+    0: #000000, 10: #1d1615, 20: #392c2a, 25: #483735, 30: #574240,
+    35: #664d4b, 40: #755857, 50: #936f6d, 60: #ad8d8b, 70: #c4aaa9,
+    80: #d9c8c7, 90: #ede5e5, 95: #f5f0f0, 98: #fbf8f8, 99: #fdfbfb, 100: #ffffff,
+  ),
+  neutral: (
+    0: #000000, 10: #1c1a1a, 20: #313030, 25: #3d3c3c, 30: #494848,
+    35: #555454, 40: #616060, 50: #7a7979, 60: #949393, 70: #aeadad,
+    80: #c9c8c8, 90: #e4e3e3, 95: #f2f2f2, 98: #fafafa, 99: #fdfdfd, 100: #ffffff,
+  ),
+  neutral-variant: (
+    0: #000000, 10: #1d1918, 20: #332f2e, 25: #3f3a39, 30: #4c4645,
+    35: #585251, 40: #645e5d, 50: #7e7675, 60: #989190, 70: #b1aaa9,
+    80: #cac4c3, 90: #e5e0df, 95: #f3efef, 98: #faf8f8, 99: #fdfbfb, 100: #ffffff,
+  ),
+);
+
+$muted-magenta-palette: (
+  0: #000000, 10: #1e0e1e, 20: #3c1c3c, 25: #4c234c, 30: #5b2a5b,
+  35: #6b316b, 40: #7a387a, 50: #9a469a, 60: #b36eb3, 70: #c897c8,
+  80: #dbbddb, 90: #eddfed, 95: #f5eef5, 98: #fbf7fb, 99: #fdfbfd, 100: #ffffff,
+  secondary: (
+    0: #000000, 10: #1c161c, 20: #382b38, 25: #473547, 30: #563f56,
+    35: #654965, 40: #745474, 50: #916991, 60: #ab8bab, 70: #c2aac2,
+    80: #d7c7d7, 90: #ece4ec, 95: #f5f0f5, 98: #faf8fa, 99: #fdfbfd, 100: #ffffff,
+  ),
+  neutral: (
+    0: #000000, 10: #1b1a1b, 20: #31302f, 25: #3d3c3c, 30: #494848,
+    35: #555454, 40: #616060, 50: #7a7979, 60: #949393, 70: #aeadad,
+    80: #c9c8c8, 90: #e4e3e3, 95: #f2f2f2, 98: #fafafa, 99: #fdfdfd, 100: #ffffff,
+  ),
+  neutral-variant: (
+    0: #000000, 10: #1d181d, 20: #342f34, 25: #403a40, 30: #4d464d,
+    35: #595259, 40: #665e66, 50: #807580, 60: #9a919a, 70: #b2abb2,
+    80: #cac4ca, 90: #e5e0e5, 95: #f3eff3, 98: #faf8fa, 99: #fdfbfd, 100: #ffffff,
+  ),
+);
+
+$muted-peach-palette: (
+  0: #000000, 10: #211710, 20: #422e20, 25: #533a28, 30: #644530,
+  35: #755138, 40: #865d40, 50: #a87450, 60: #c09578, 70: #d2b49f,
+  80: #e2d0c2, 90: #f1e8e1, 95: #f7f2ee, 98: #fbf9f7, 99: #fdfcfb, 100: #ffffff,
+  secondary: (
+    0: #000000, 10: #1c1815, 20: #373029, 25: #453c33, 30: #53483e,
+    35: #615548, 40: #6f6253, 50: #8b7b69, 60: #a69889, 70: #bfb3a7,
+    80: #d6ccc4, 90: #ece7e2, 95: #f5f1ee, 98: #faf8f7, 99: #fdfcfb, 100: #ffffff,
+  ),
+  neutral: (
+    0: #000000, 10: #1b1a19, 20: #31302e, 25: #3d3c3a, 30: #494846,
+    35: #555452, 40: #61605e, 50: #7a7977, 60: #949391, 70: #aeadab,
+    80: #c9c8c6, 90: #e4e3e2, 95: #f2f2f1, 98: #fafaf9, 99: #fdfdfc, 100: #ffffff,
+  ),
+  neutral-variant: (
+    0: #000000, 10: #1d1917, 20: #34302c, 25: #403c37, 30: #4d4843,
+    35: #5a544f, 40: #66605b, 50: #807972, 60: #9a938c, 70: #b2aba5,
+    80: #cac4bf, 90: #e5e0dc, 95: #f3efed, 98: #faf8f7, 99: #fdfcfb, 100: #ffffff,
+  ),
+);
+
+// --- Base Theme (Azure – Firmenstandard) ---
 html {
     height: 100%;
 
@@ -24,7 +194,36 @@ html {
     }
 }
 
-// --- Farbthemen ---
+// --- Maskuline Farbthemen (gedämpft) ---
+html.theme-navy {
+    @include mat.theme((
+        color: (primary: $muted-navy-palette, tertiary: mat.$azure-palette),
+        typography: Roboto, density: 0,
+    ));
+}
+
+html.theme-teal {
+    @include mat.theme((
+        color: (primary: $muted-teal-palette, tertiary: $muted-forest-palette),
+        typography: Roboto, density: 0,
+    ));
+}
+
+html.theme-forest {
+    @include mat.theme((
+        color: (primary: $muted-forest-palette, tertiary: $muted-olive-palette),
+        typography: Roboto, density: 0,
+    ));
+}
+
+html.theme-olive {
+    @include mat.theme((
+        color: (primary: $muted-olive-palette, tertiary: $muted-forest-palette),
+        typography: Roboto, density: 0,
+    ));
+}
+
+// --- Feminine Farbthemen (gedämpft) ---
 html.theme-rose {
     @include mat.theme(
         (
@@ -38,56 +237,32 @@ html.theme-rose {
     );
 }
 
-html.theme-violet {
-    @include mat.theme(
-        (
-            color: (
-                primary: mat.$violet-palette,
-                tertiary: mat.$magenta-palette,
-            ),
-            typography: Roboto,
-            density: 0,
-        )
-    );
+html.theme-lavender {
+    @include mat.theme((
+        color: (primary: $muted-lavender-palette, tertiary: $muted-magenta-palette),
+        typography: Roboto, density: 0,
+    ));
 }
 
-html.theme-teal {
-    @include mat.theme(
-        (
-            color: (
-                primary: mat.$cyan-palette,
-                tertiary: mat.$spring-green-palette,
-            ),
-            typography: Roboto,
-            density: 0,
-        )
-    );
+html.theme-coral {
+    @include mat.theme((
+        color: (primary: $muted-coral-palette, tertiary: $muted-peach-palette),
+        typography: Roboto, density: 0,
+    ));
 }
 
-html.theme-orange {
-    @include mat.theme(
-        (
-            color: (
-                primary: mat.$orange-palette,
-                tertiary: mat.$yellow-palette,
-            ),
-            typography: Roboto,
-            density: 0,
-        )
-    );
+html.theme-magenta {
+    @include mat.theme((
+        color: (primary: $muted-magenta-palette, tertiary: $muted-lavender-palette),
+        typography: Roboto, density: 0,
+    ));
 }
 
-html.theme-green {
-    @include mat.theme(
-        (
-            color: (
-                primary: mat.$green-palette,
-                tertiary: mat.$chartreuse-palette,
-            ),
-            typography: Roboto,
-            density: 0,
-        )
-    );
+html.theme-peach {
+    @include mat.theme((
+        color: (primary: $muted-peach-palette, tertiary: $muted-coral-palette),
+        typography: Roboto, density: 0,
+    ));
 }
 
 // --- Body ---

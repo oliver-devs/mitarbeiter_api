@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class Department(models.Model):
@@ -38,6 +39,11 @@ class Position(models.Model):
 
 
 class Employee(models.Model):
+    class Gender(models.TextChoices):
+        MALE = "male", "Männlich"
+        FEMALE = "female", "Weiblich"
+        DIVERSE = "diverse", "Divers"
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         null=True, blank=True, related_name="employee",
@@ -45,12 +51,14 @@ class Employee(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
+    gender = models.CharField(max_length=10, choices=Gender.choices, default=Gender.MALE)
     department = models.ForeignKey(
         Department, on_delete=models.CASCADE, related_name="employees"
     )
     position = models.ForeignKey(
         Position, on_delete=models.SET_NULL, null=True, blank=True, related_name="employees"
     )
+    birthday = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -67,6 +75,7 @@ class Absence(models.Model):
         VACATION = "vacation", "Urlaub"
         SICK = "sick", "Krank"
         HOMEOFFICE = "homeoffice", "Homeoffice"
+        MEETING = "meeting", "Besprechung"
         OTHER = "other", "Sonstiges"
 
     class Status(models.TextChoices):
@@ -102,9 +111,11 @@ class TimeEntry(models.Model):
     employee = models.ForeignKey(
         Employee, on_delete=models.CASCADE, related_name="time_entries"
     )
-    date = models.DateField(auto_now_add=True)
-    start_time = models.DateTimeField(auto_now_add=True)
+    date = models.DateField(default=timezone.localdate)
+    start_time = models.DateTimeField(default=timezone.now)
     end_time = models.DateTimeField(null=True, blank=True)
+    is_manual_edit = models.BooleanField(default=False)
+    edit_reason = models.TextField(blank=True, default="")
     
     class Meta:
         ordering = ["-start_time"]
@@ -114,3 +125,39 @@ class TimeEntry(models.Model):
     def __str__(self) -> str:
         status = "Geöffnet" if not self.end_time else "Geschlossen"
         return f"{self.employee} ({self.date}) - {status}"
+
+class TimeBreak(models.Model):
+    time_entry = models.ForeignKey(
+        TimeEntry, on_delete=models.CASCADE, related_name="breaks"
+    )
+    start_time = models.DateTimeField(default=timezone.now)
+    end_time = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Pause"
+        verbose_name_plural = "Pausen"
+
+class TimeCorrectionRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Ausstehend"
+        APPROVED = "approved", "Genehmigt"
+        DENIED = "denied", "Abgelehnt"
+
+    employee = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name="time_corrections"
+    )
+    time_entry = models.ForeignKey(
+        TimeEntry, on_delete=models.SET_NULL, null=True, blank=True, related_name="corrections"
+    )
+    new_start_time = models.DateTimeField()
+    new_end_time = models.DateTimeField()
+    reason = models.TextField()
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PENDING
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Korrekturantrag"
+        verbose_name_plural = "Korrekturanträge"

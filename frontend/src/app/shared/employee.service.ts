@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Employee, CreateEmployeeResponse } from './models';
+import { Employee, CreateEmployeeResponse, PaginatedResponse } from './models';
 
 @Injectable({
     providedIn: 'root',
@@ -10,8 +10,15 @@ export class EmployeeService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = environment.apiUrl;
 
-    getEmployees() {
-        return this.http.get<Employee[]>(`${this.apiUrl}employees/`);
+    getEmployees(page = 1) {
+        const params = new HttpParams().set('page', page);
+        return this.http.get<PaginatedResponse<Employee>>(`${this.apiUrl}employees/`, { params });
+    }
+
+    getAllEmployees() {
+        return this.http.get<Employee[]>(`${this.apiUrl}employees/`, {
+            params: new HttpParams().set('page_size', '0'),
+        });
     }
 
     getEmployee(id: number) {

@@ -20,6 +20,7 @@
                     <div class="user-section">
                         <div class="user-avatar-container">
                             <mat-icon class="user-avatar">person</mat-icon>
+                            <div class="sidebar-status-dot" [attr.data-status]="user.current_status"></div>
                         </div>
                         <div class="user-info">
                             <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
@@ -34,28 +35,36 @@
                 }
             </header>
 
+            <nav>
             <mat-nav-list class="nav-list">
+                <div class="menu-subheader">Start</div>
+                
                 <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
                     <mat-icon matListItemIcon>dashboard</mat-icon>
                     <span matListItemTitle>Mein Dashboard</span>
                 </a>
 
-                <div class="menu-subheader">Personal</div>
-
-                @if (auth.isManagement()) {
-                    <a mat-list-item routerLink="/list" routerLinkActive="active-link">
-                        <mat-icon matListItemIcon>groups</mat-icon>
-                        <span matListItemTitle>Mitarbeiter</span>
-                    </a>
-                }
-
-                <a mat-list-item routerLink="/calendar" routerLinkActive="active-link">
-                    <mat-icon matListItemIcon>event_note</mat-icon>
-                    <span matListItemTitle>Abwesenheiten</span>
+                <a mat-list-item routerLink="/time-tracking" routerLinkActive="active-link">
+                    <mat-icon matListItemIcon>more_time</mat-icon>
+                    <span matListItemTitle>Zeiterfassung</span>
                 </a>
 
-                <div class="menu-spacer"></div>
+                <a mat-list-item routerLink="/calendar" routerLinkActive="active-link">
+                    <mat-icon matListItemIcon>calendar_month</mat-icon>
+                    <span matListItemTitle>Kalender</span>
+                </a>
+
+                <div class="menu-subheader">Verzeichnis</div>
+
+                <a mat-list-item routerLink="/list" routerLinkActive="active-link">
+                    <mat-icon matListItemIcon>groups</mat-icon>
+                    <span matListItemTitle>Mitarbeiter</span>
+                </a>
+
+                <div class="nav-spacer"></div>
                 <mat-divider />
+
+                <div class="menu-subheader">System</div>
 
                 <a mat-list-item routerLink="/settings" routerLinkActive="active-link">
                     <mat-icon matListItemIcon>settings</mat-icon>
@@ -67,6 +76,7 @@
                     <span matListItemTitle>Abmelden</span>
                 </a>
             </mat-nav-list>
+            </nav>
         </mat-sidenav>
 
         <mat-sidenav-content class="main-content">

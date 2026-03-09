@@ -1,12 +1,15 @@
 <section class="settings-container">
     <header class="page-header">
-        <div class="header-content">
-            <h1>Einstellungen</h1>
-            <p>Verwalte hier das System und dein Profil.</p>
+        <div class="header-main">
+            <div class="header-content">
+                <h1>Einstellungen</h1>
+                <p class="subtitle">Verwalte hier das System und dein Profil.</p>
+            </div>
         </div>
     </header>
 
-    <mat-tab-group animationDuration="0ms" class="settings-tabs" color="primary">
+    <div class="page-body">
+        <mat-tab-group animationDuration="0ms" class="settings-tabs" color="primary">
         @if (auth.isManagement()) {
         <mat-tab>
             <ng-template mat-tab-label>
@@ -116,7 +119,7 @@
                 <div class="settings-grid">
                     <div class="master-data-container">
                         @if (availableLetters().length > 0) {
-                            <div class="alphabet-filter-bar">
+                            <nav class="alphabet-filter-bar" aria-label="Alphabetische Filterung">
                                 <button mat-button class="filter-reset-btn" 
                                     [class.active]="!selectedLetter()" 
                                     (click)="selectedLetter.set(null)">
@@ -129,7 +132,7 @@
                                         {{ letter }}
                                     </button>
                                 }
-                            </div>
+                            </nav>
                         }
 
                         @if (selectedDepartment(); as dept) {
@@ -209,7 +212,12 @@
                         } @else {
                             <!-- Abteilungen -->
                             <div class="master-data-header">
-                                <span class="drilldown-title">Abteilungen</span>
+                                <div class="header-titles">
+                                    <span class="drilldown-title">Abteilungen</span>
+                                    <button mat-stroked-button (click)="openStatsDialog()" class="pill-btn stats-btn">
+                                        <mat-icon>bar_chart</mat-icon> Statistiken
+                                    </button>
+                                </div>
                                 <button
                                     mat-flat-button
                                     color="primary"
@@ -309,72 +317,107 @@
 
                 @if (personalView() === 'profile') {
                     <div class="settings-grid">
-                        <mat-card class="settings-card">
-                            <div class="card-header-flex">
-                                <div class="title-group">
-                                    <mat-card-title>Sicherheit</mat-card-title>
-                                    <mat-card-subtitle>
-                                        Passwort und Zugangsdaten ändern
-                                    </mat-card-subtitle>
+                    <!-- Profilkarte -->
+                    @if (auth.currentUser(); as user) {
+                        <mat-card class="settings-card profile-card">
+                            <div class="profile-header">
+                                <div class="profile-avatar">
+                                    {{ (user.first_name ?? '').charAt(0) }}{{ (user.last_name ?? '').charAt(0) }}
+                                </div>
+                                <div class="profile-header-text">
+                                    <h2>{{ user.first_name }} {{ user.last_name }}</h2>
+                                    <span class="profile-position">{{ user.position_title ?? 'Mitarbeiter' }}</span>
                                 </div>
                             </div>
-
                             <mat-card-content>
-                                <div class="password-form">
-                                    <mat-form-field appearance="outline" class="full-width">
-                                        <mat-label>Aktuelles Passwort</mat-label>
-                                        <input
-                                            matInput
-                                            type="password"
-                                            [(ngModel)]="passwordData.old_password"
-                                        />
-                                        <mat-icon matPrefix class="field-icon">vpn_key</mat-icon>
-                                    </mat-form-field>
-
-                                    <mat-form-field appearance="outline" class="full-width">
-                                        <mat-label>Neues Passwort</mat-label>
-                                        <input
-                                            matInput
-                                            type="password"
-                                            [(ngModel)]="passwordData.new_password"
-                                        />
-                                        <mat-icon matPrefix class="field-icon">lock</mat-icon>
-                                    </mat-form-field>
-
-                                    <mat-form-field appearance="outline" class="full-width">
-                                        <mat-label>Neues Passwort bestätigen</mat-label>
-                                        <input
-                                            matInput
-                                            type="password"
-                                            [(ngModel)]="passwordData.confirm_password"
-                                        />
-                                        <mat-icon matPrefix class="field-icon">lock</mat-icon>
-                                    </mat-form-field>
-
-                                    <button
-                                        mat-flat-button
-                                        color="primary"
-                                        class="save-btn"
-                                        [disabled]="
-                                            !passwordData.old_password ||
-                                            !passwordData.new_password ||
-                                            !passwordData.confirm_password
-                                        "
-                                        (click)="changePassword()"
-                                    >
-                                        <mat-icon>save</mat-icon> Passwort speichern
-                                    </button>
+                                <div class="profile-info-grid">
+                                    @for (item of profileData(); track item.label) {
+                                        <div class="profile-info-row">
+                                            <div class="profile-icon-box">
+                                                <mat-icon>{{ item.icon }}</mat-icon>
+                                            </div>
+                                            <div class="profile-info-text">
+                                                <label>{{ item.label }}</label>
+                                                <span>{{ item.value }}</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="profile-hint">
+                                    <mat-icon>info</mat-icon>
+                                    <span>Änderungen an deinen Stammdaten bitte über die Personalabteilung beantragen.</span>
                                 </div>
                             </mat-card-content>
                         </mat-card>
+                    }
 
-                        <mat-card class="settings-card info-card">
-                            <mat-card-content class="info-content">
-                                <mat-icon class="info-icon">security</mat-icon>
-                                <h3>Passwortrichtlinien</h3>
-                                <p>Bitte wähle ein sicheres Passwort mit mindestens 8 Zeichen, das Groß- und Kleinbuchstaben sowie Zahlen enthält.</p>
-                            </mat-card-content>
-                        </mat-card>
+                    <!-- Sicherheit -->
+                    <mat-card class="settings-card">
+                        <div class="card-header-flex">
+                            <div class="title-group">
+                                <mat-card-title>Sicherheit</mat-card-title>
+                                <mat-card-subtitle>
+                                    Passwort und Zugangsdaten ändern
+                                </mat-card-subtitle>
+                            </div>
+                        </div>
+
+                        <mat-card-content>
+                            <div class="password-form">
+                                <mat-form-field appearance="outline" class="full-width">
+                                    <mat-label>Aktuelles Passwort</mat-label>
+                                    <input
+                                        matInput
+                                        type="password"
+                                        [(ngModel)]="passwordData.old_password"
+                                    />
+                                    <mat-icon matPrefix class="field-icon">vpn_key</mat-icon>
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline" class="full-width">
+                                    <mat-label>Neues Passwort</mat-label>
+                                    <input
+                                        matInput
+                                        type="password"
+                                        [(ngModel)]="passwordData.new_password"
+                                    />
+                                    <mat-icon matPrefix class="field-icon">lock</mat-icon>
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline" class="full-width">
+                                    <mat-label>Neues Passwort bestätigen</mat-label>
+                                    <input
+                                        matInput
+                                        type="password"
+                                        [(ngModel)]="passwordData.confirm_password"
+                                    />
+                                    <mat-icon matPrefix class="field-icon">lock</mat-icon>
+                                </mat-form-field>
+
+                                <button
+                                    mat-flat-button
+                                    color="primary"
+                                    class="save-btn"
+                                    [disabled]="
+                                        !passwordData.old_password ||
+                                        !passwordData.new_password ||
+                                        !passwordData.confirm_password
+                                    "
+                                    (click)="changePassword()"
+                                >
+                                    <mat-icon>save</mat-icon> Passwort speichern
+                                </button>
+                            </div>
+                        </mat-card-content>
+                    </mat-card>
+
+                    <mat-card class="settings-card info-card">
+                        <mat-card-content class="info-content">
+                            <mat-icon class="info-icon">security</mat-icon>
+                            <h3>Passwortrichtlinien</h3>
+                            <p>Bitte wähle ein sicheres Passwort mit mindestens 8 Zeichen, das Groß- und Kleinbuchstaben sowie Zahlen enthält.</p>
+                        </mat-card-content>
+                    </mat-card>
                     </div>
                 } @else {
                     <div class="settings-grid">
@@ -427,7 +470,12 @@
                                                     <mat-icon class="swatch-check">check</mat-icon>
                                                 }
                                             </span>
-                                            <span class="swatch-label">{{ theme.label }}</span>
+                                            <span class="swatch-label">
+                                                {{ theme.label }}
+                                                @if (theme.id === 'azure') {
+                                                    <span class="standard-badge">Standard</span>
+                                                }
+                                            </span>
                                         </button>
                                     }
                                 </div>
@@ -438,4 +486,5 @@
             </div>
         </mat-tab>
     </mat-tab-group>
+    </div>
 </section>

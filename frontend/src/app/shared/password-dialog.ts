@@ -36,7 +36,7 @@ export interface PasswordDialogData {
     `,
     styles: `
         .credentials {
-            background: #f5f5f5;
+            background: var(--mat-sys-surface-container-low);
             border-radius: 8px;
             padding: 16px;
             margin-block: 16px;
@@ -53,7 +53,7 @@ export interface PasswordDialogData {
         }
 
         .label {
-            color: #666;
+            color: var(--mat-sys-on-surface-variant);
             min-width: 160px;
             font-size: 0.9rem;
         }
@@ -61,8 +61,8 @@ export interface PasswordDialogData {
         code {
             font-family: monospace;
             font-size: 1rem;
-            background: #fff;
-            border: 1px solid #ddd;
+            background: var(--mat-sys-surface);
+            border: 1px solid var(--mat-sys-outline-variant);
             border-radius: 4px;
             padding: 4px 10px;
             letter-spacing: 0.05em;

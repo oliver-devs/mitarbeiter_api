@@ -23,11 +23,24 @@ describe('EmployeeService', () => {
         expect(service).toBeTruthy();
     });
 
-    it('getEmployees calls correct URL', () => {
+    it('getEmployees calls correct URL with pagination', () => {
         service.getEmployees().subscribe();
-        const req = httpMock.expectOne(`${environment.apiUrl}employees/`);
+        const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}employees/`);
         expect(req.request.method).toBe('GET');
-        req.flush([]);
+        expect(req.request.params.get('page')).toBe('1');
+        req.flush({ count: 0, next: null, previous: null, results: [] });
+    });
+
+    it('getAllEmployees calls with page_size=0', () => {
+        service.getAllEmployees().subscribe((result) => {
+            expect(result.length).toBe(2);
+        });
+        const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}employees/`);
+        expect(req.request.params.get('page_size')).toBe('0');
+        req.flush([
+            { id: 1, first_name: 'A', last_name: 'B', email: 'a@b.de', department: 1 },
+            { id: 2, first_name: 'C', last_name: 'D', email: 'c@d.de', department: 1 },
+        ]);
     });
 
     it('createEmployee posts data', () => {
@@ -35,13 +48,16 @@ describe('EmployeeService', () => {
             first_name: 'Max',
             last_name: 'Muster',
             email: 'max@test.de',
-            department: 'IT',
+            department: 1,
         };
 
         service.createEmployee(employee).subscribe();
         const req = httpMock.expectOne(`${environment.apiUrl}employees/`);
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toEqual(employee);
-        req.flush({ ...employee, id: 1, initial_username: 'max.muster', initial_password: 'abc' });
+        req.flush({
+            employee: { ...employee, id: 1 },
+            credentials: { username: 'max.muster', password: 'abc', notice: 'Initiales Passwort' },
+        });
     });
 });

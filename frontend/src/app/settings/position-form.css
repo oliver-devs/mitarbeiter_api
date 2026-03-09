@@ -2,14 +2,14 @@ h2[mat-dialog-title] {
     font-weight: 500;
     font-size: 1.25rem;
     color: var(--mat-sys-on-surface);
-    margin-bottom: 0;
+    margin-block-end: 0;
 }
 
 .form-container {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding-top: 8px;
+    padding-block-start: 8px;
     min-width: 350px;
 }
 

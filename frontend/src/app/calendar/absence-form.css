@@ -2,14 +2,14 @@ h2[mat-dialog-title] {
     font-weight: 500;
     font-size: 1.25rem;
     color: var(--mat-sys-on-surface);
-    margin-bottom: 0;
+    margin-block-end: 0;
 }
 
 .form-container {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding-top: 8px;
+    padding-block-start: 8px;
     min-width: 400px;
 }
 
@@ -31,7 +31,7 @@ h2[mat-dialog-title] {
     background: var(--mat-sys-surface-container-lowest);
     border-radius: 12px;
     border: 1px solid var(--mat-sys-outline-variant);
-    margin-top: 8px;
+    margin-block-start: 8px;
 }
 
 .status-badge {

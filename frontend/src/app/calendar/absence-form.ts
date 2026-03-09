@@ -9,7 +9,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AbsenceService } from '../shared/absence.service';
 import { Employee, Absence } from '../shared/models';
-import { formatLocalDate } from '../shared/date-utils';
+import { formatLocalDate, ABSENCE_STATUS_LABELS } from '../shared/date-utils';
 
 export interface AbsenceFormData {
     absence?: Absence;
@@ -17,12 +17,6 @@ export interface AbsenceFormData {
     canApprove?: boolean;
     currentUserEmail?: string;
 }
-
-const STATUS_LABELS: Record<string, string> = {
-    pending: 'Ausstehend',
-    approved: 'Genehmigt',
-    denied: 'Abgelehnt',
-};
 
 @Component({
     selector: 'app-absence-form',
@@ -83,7 +77,7 @@ export class AbsenceFormComponent {
     readonly showApprovalActions: boolean;
 
     getStatusLabel(): string {
-        return STATUS_LABELS[this.absence.status ?? 'pending'] ?? '';
+        return ABSENCE_STATUS_LABELS[this.absence.status ?? 'pending'] ?? '';
     }
 
     approve() {

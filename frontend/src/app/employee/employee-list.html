@@ -1,15 +1,59 @@
-<section class="container">
-    <header class="header">
-        <div class="header-content">
-            <h1>Mitarbeiter</h1>
-            <p>{{ totalFiltered() }} Mitarbeiter im Unternehmen</p>
+<ng-template #employeeCard let-emp="emp" let-badgeText="badgeText" let-badgeClass="badgeClass">
+    <div class="employee-card">
+        <div class="employee-main">
+            <div class="avatar-circle">
+                {{ emp.first_name.charAt(0) }}{{ emp.last_name.charAt(0) }}
+            </div>
+            <div class="employee-info">
+                <div class="employee-name">
+                    {{ emp.first_name }} {{ emp.last_name }}
+                </div>
+                <div class="employee-details">
+                    <span class="employee-email">{{ emp.email }}</span>
+                    @if (badgeText) {
+                        <span [class]="'badge ' + badgeClass">{{ badgeText }}</span>
+                    }
+                </div>
+            </div>
         </div>
 
         @if (auth.isManagement()) {
-            <button mat-flat-button color="primary" class="add-btn" routerLink="/create">
-                <mat-icon>add</mat-icon> Neuer Mitarbeiter
-            </button>
+            <div class="employee-actions">
+                <button
+                    mat-icon-button
+                    color="primary"
+                    [routerLink]="['/edit', emp.id]"
+                    matTooltip="Bearbeiten"
+                >
+                    <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="deleteEmployee(emp.id)"
+                    matTooltip="Löschen"
+                >
+                    <mat-icon>delete</mat-icon>
+                </button>
+            </div>
         }
+    </div>
+</ng-template>
+
+<section class="container">
+    <header class="page-header">
+        <div class="header-main">
+            <div class="header-content">
+                <h1>Mitarbeiter</h1>
+                <p class="subtitle">{{ totalFiltered() }} Mitarbeiter im Unternehmen</p>
+            </div>
+
+            @if (auth.isManagement()) {
+                <button mat-flat-button color="primary" class="add-btn" routerLink="/create">
+                    <mat-icon>add</mat-icon> Neuer Mitarbeiter
+                </button>
+            }
+        </div>
     </header>
 
     <div class="controls-bar">
@@ -19,9 +63,9 @@
             <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
 
-        <mat-button-toggle-group 
-            class="view-toggle" 
-            [value]="currentView()" 
+        <mat-button-toggle-group
+            class="view-toggle"
+            [value]="currentView()"
             (change)="setView($event.value)"
         >
             <mat-button-toggle value="department">
@@ -38,162 +82,64 @@
     <div class="employee-grid">
         <div class="list-container">
             @if (availableLetters().length > 0) {
-                <div class="alphabet-filter-bar">
-                    <button mat-button class="filter-reset-btn" 
-                        [class.active]="!selectedLetter()" 
+                <nav class="alphabet-filter-bar" aria-label="Alphabetische Filterung">
+                    <button mat-button class="filter-reset-btn"
+                        [class.active]="!selectedLetter()"
                         (click)="selectedLetter.set(null)">
                         Alle
                     </button>
                     @for (letter of availableLetters(); track letter) {
-                        <button mat-button class="letter-filter-btn" 
-                            [class.active]="selectedLetter() === letter" 
+                        <button mat-button class="letter-filter-btn"
+                            [class.active]="selectedLetter() === letter"
                             (click)="toggleLetter(letter)">
                             {{ letter }}
                         </button>
                     }
-                </div>
+                </nav>
             }
 
-            @if (currentView() === 'department') {
-                @if (filteredAlphabeticalDepartmentGroups().length === 0) {
-                    <div class="no-data">Keine Mitarbeiter für "{{ searchQuery() }}" gefunden.</div>
-                } @else {
-                    <div class="alphabet-list">
-                        @for (letterGroup of filteredAlphabeticalDepartmentGroups(); track letterGroup.letter) {
-                            <div class="letter-section">
-                                <div class="letter-header">
-                                    <span class="letter-badge">{{ letterGroup.letter }}</span>
-                                </div>
-                                
-                                <mat-accordion multi class="group-accordion">
-                                    @for (group of letterGroup.positions; track group.name) {
-                                        <mat-expansion-panel [expanded]="!!searchQuery()">
-                                            <mat-expansion-panel-header>
-                                                <mat-panel-title>{{ group.name }}</mat-panel-title>
-                                                <mat-panel-description>
-                                                    {{ group.employees.length }} Mitarbeiter
-                                                </mat-panel-description>
-                                            </mat-expansion-panel-header>
+            @let view = currentView();
+            @let deptGroups = filteredAlphabeticalDepartmentGroups();
+            @let posGroups = filteredAlphabeticalPositionGroups();
+            @let groups = view === 'department' ? deptGroups : posGroups;
 
-                                            <div class="employee-cards">
-                                                @for (emp of group.employees; track emp.id) {
-                                                    <div class="employee-card">
-                                                        <div class="employee-main">
-                                                            <div class="avatar-circle">
-                                                                {{ emp.first_name.charAt(0) }}{{ emp.last_name.charAt(0) }}
-                                                            </div>
-                                                            <div class="employee-info">
-                                                                <div class="employee-name">
-                                                                    {{ emp.first_name }} {{ emp.last_name }}
-                                                                </div>
-                                                                <div class="employee-details">
-                                                                    <span class="employee-email">{{ emp.email }}</span>
-                                                                    @if (emp.position_title) {
-                                                                        <span class="badge pos-badge">{{ emp.position_title }}</span>
-                                                                    }
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        @if (auth.isManagement()) {
-                                                            <div class="employee-actions">
-                                                                <button
-                                                                    mat-icon-button
-                                                                    color="primary"
-                                                                    [routerLink]="['/edit', emp.id]"
-                                                                    matTooltip="Bearbeiten"
-                                                                >
-                                                                    <mat-icon>edit</mat-icon>
-                                                                </button>
-                                                                <button
-                                                                    mat-icon-button
-                                                                    color="warn"
-                                                                    (click)="deleteEmployee(emp.id)"
-                                                                    matTooltip="Löschen"
-                                                                >
-                                                                    <mat-icon>delete</mat-icon>
-                                                                </button>
-                                                            </div>
-                                                        }
-                                                    </div>
-                                                }
-                                            </div>
-                                        </mat-expansion-panel>
-                                    }
-                                </mat-accordion>
-                            </div>
-                        }
-                    </div>
-                }
+            @if (groups.length === 0) {
+                <div class="no-data">Keine Mitarbeiter für "{{ searchQuery() }}" gefunden.</div>
             } @else {
-                @if (filteredAlphabeticalPositionGroups().length === 0) {
-                    <div class="no-data">Keine Mitarbeiter für "{{ searchQuery() }}" gefunden.</div>
-                } @else {
-                    <div class="alphabet-list">
-                        @for (letterGroup of filteredAlphabeticalPositionGroups(); track letterGroup.letter) {
-                            <div class="letter-section">
-                                <div class="letter-header">
-                                    <span class="letter-badge">{{ letterGroup.letter }}</span>
-                                </div>
-                                
-                                <mat-accordion multi class="group-accordion">
-                                    @for (group of letterGroup.positions; track group.name) {
-                                        <mat-expansion-panel [expanded]="!!searchQuery()">
-                                            <mat-expansion-panel-header>
-                                                <mat-panel-title>{{ group.name }}</mat-panel-title>
-                                                <mat-panel-description>
-                                                    {{ group.employees.length }} Mitarbeiter
-                                                </mat-panel-description>
-                                            </mat-expansion-panel-header>
-
-                                            <div class="employee-cards">
-                                                @for (emp of group.employees; track emp.id) {
-                                                    <div class="employee-card">
-                                                        <div class="employee-main">
-                                                            <div class="avatar-circle">
-                                                                {{ emp.first_name.charAt(0) }}{{ emp.last_name.charAt(0) }}
-                                                            </div>
-                                                            <div class="employee-info">
-                                                                <div class="employee-name">
-                                                                    {{ emp.first_name }} {{ emp.last_name }}
-                                                                </div>
-                                                                <div class="employee-details">
-                                                                    <span class="employee-email">{{ emp.email }}</span>
-                                                                    <span class="badge dept-badge">{{ emp.department_name }}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        @if (auth.isManagement()) {
-                                                            <div class="employee-actions">
-                                                                <button
-                                                                    mat-icon-button
-                                                                    color="primary"
-                                                                    [routerLink]="['/edit', emp.id]"
-                                                                    matTooltip="Bearbeiten"
-                                                                >
-                                                                    <mat-icon>edit</mat-icon>
-                                                                </button>
-                                                                <button
-                                                                    mat-icon-button
-                                                                    color="warn"
-                                                                    (click)="deleteEmployee(emp.id)"
-                                                                    matTooltip="Löschen"
-                                                                >
-                                                                    <mat-icon>delete</mat-icon>
-                                                                </button>
-                                                            </div>
-                                                        }
-                                                    </div>
-                                                }
-                                            </div>
-                                        </mat-expansion-panel>
-                                    }
-                                </mat-accordion>
+                <div class="alphabet-list">
+                    @for (letterGroup of groups; track letterGroup.letter) {
+                        <div class="letter-section">
+                            <div class="letter-header">
+                                <span class="letter-badge">{{ letterGroup.letter }}</span>
                             </div>
-                        }
-                    </div>
-                }
+
+                            <mat-accordion multi class="group-accordion">
+                                @for (group of letterGroup.items; track group.name) {
+                                    <mat-expansion-panel [expanded]="!!searchQuery()">
+                                        <mat-expansion-panel-header>
+                                            <mat-panel-title>{{ group.name }}</mat-panel-title>
+                                            <mat-panel-description>
+                                                {{ group.items.length }} Mitarbeiter
+                                            </mat-panel-description>
+                                        </mat-expansion-panel-header>
+
+                                        <div class="employee-cards">
+                                            @for (emp of group.items; track emp.id) {
+                                                <ng-container
+                                                    *ngTemplateOutlet="employeeCard; context: {
+                                                        emp: emp,
+                                                        badgeText: view === 'department' ? emp.position_title : emp.department_name,
+                                                        badgeClass: view === 'department' ? 'pos-badge' : 'dept-badge'
+                                                    }"
+                                                />
+                                            }
+                                        </div>
+                                    </mat-expansion-panel>
+                                }
+                            </mat-accordion>
+                        </div>
+                    }
+                </div>
             }
         </div>
 

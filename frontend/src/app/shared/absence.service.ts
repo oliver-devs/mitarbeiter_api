@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Absence } from './models';
+import { Absence, PaginatedResponse } from './models';
 
 @Injectable({
     providedIn: 'root',
@@ -10,8 +10,15 @@ export class AbsenceService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = environment.apiUrl;
 
-    getAbsences() {
-        return this.http.get<Absence[]>(`${this.apiUrl}absences/`);
+    getAbsences(page = 1) {
+        const params = new HttpParams().set('page', page);
+        return this.http.get<PaginatedResponse<Absence>>(`${this.apiUrl}absences/`, { params });
+    }
+
+    getAllAbsences() {
+        return this.http.get<Absence[]>(`${this.apiUrl}absences/`, {
+            params: new HttpParams().set('page_size', '0'),
+        });
     }
 
     createAbsence(absence: Absence) {

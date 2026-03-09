@@ -3,18 +3,23 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { ThemeService } from '../shared/theme.service';
 
 export interface CurrentUser {
     username: string;
     email: string;
-    is_management?: boolean;
-    can_approve?: boolean;
+    is_management: boolean;
+    can_approve: boolean;
     employee_id?: number;
     first_name?: string;
     last_name?: string;
+    gender?: 'male' | 'female' | 'diverse';
+    birthday?: string;
     department_id?: number;
     department_name?: string;
     position_title?: string;
+    current_status?: string;
+    created_at?: string;
 }
 
 export interface ChangePasswordResponse {
@@ -27,6 +32,7 @@ export interface ChangePasswordResponse {
 export class AuthService {
     private readonly http = inject(HttpClient);
     private readonly router = inject(Router);
+    private readonly theme = inject(ThemeService);
     private readonly apiUrl = environment.apiUrl;
 
     readonly isLoggedIn = signal<boolean>(!!localStorage.getItem('token'));
@@ -54,6 +60,7 @@ export class AuthService {
         localStorage.removeItem('token');
         this.isLoggedIn.set(false);
         this.currentUser.set(null);
+        this.theme.resetToDefaults();
         this.router.navigate(['/login']);
     }
 
@@ -69,9 +76,12 @@ export class AuthService {
         return this.http.post<ChangePasswordResponse>(`${this.apiUrl}change-password/`, data);
     }
 
-    private loadCurrentUser() {
+    loadCurrentUser() {
         this.getCurrentUser().subscribe({
-            next: (user) => this.currentUser.set(user),
+            next: (user) => {
+                this.currentUser.set(user);
+                this.theme.activateForUser(user.username, user.gender);
+            },
             error: () => this.logout(),
         });
     }

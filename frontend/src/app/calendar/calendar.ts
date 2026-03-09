@@ -1,274 +1,228 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDialog } from '@angular/material/dialog';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
-import { EmployeeService } from '../shared/employee.service';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDividerModule } from '@angular/material/divider';
 import { AbsenceService } from '../shared/absence.service';
-import { Absence } from '../shared/models';
+import { EmployeeService } from '../shared/employee.service';
 import { AuthService } from '../auth/auth.service';
-import { AbsenceFormComponent, AbsenceFormData } from './absence-form';
-import { formatLocalDate, getIsoWeek } from '../shared/date-utils';
-
-interface CalendarDay {
-    date: Date;
-    dayOfMonth: number;
-    isCurrentMonth: boolean;
-    isToday: boolean;
-}
-
-interface CalendarWeek {
-    kw: number;
-    days: CalendarDay[];
-}
-
-const TYPE_COLORS: Record<string, { bg: string; label: string }> = {
-    vacation: { bg: '#1565c0', label: 'Urlaub' },
-    sick: { bg: '#d32f2f', label: 'Krank' },
-    homeoffice: { bg: '#4caf50', label: 'Homeoffice' },
-    other: { bg: '#ff9800', label: 'Sonstiges' },
-};
-
-const STATUS_LABELS: Record<string, string> = {
-    pending: 'Ausstehend',
-    approved: 'Genehmigt',
-    denied: 'Abgelehnt',
-};
-
-const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-
-const MONTH_NAMES = [
-    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
-];
+import { Absence, Employee } from '../shared/models';
+import { AbsenceFormComponent } from './absence-form';
+import { DayDetailDialogComponent, DayDetailData } from './day-detail-dialog';
+import {
+    getIsoWeek, ABSENCE_TYPE_LABELS, ABSENCE_TYPE_COLORS, ABSENCE_STATUS_LABELS,
+} from '../shared/date-utils';
 
 @Component({
     selector: 'app-calendar',
     imports: [
-        MatCardModule,
-        MatButtonModule,
-        MatIconModule,
-        MatTooltipModule,
-        MatProgressSpinnerModule,
-        MatButtonToggleModule,
+        MatButtonToggleModule, MatCardModule, MatIconModule, MatButtonModule,
+        MatTooltipModule, MatDialogModule, MatProgressSpinnerModule, MatDividerModule,
     ],
     templateUrl: './calendar.html',
     styleUrl: './calendar.css',
 })
 export class CalendarComponent implements OnInit {
-    private readonly employeeService = inject(EmployeeService);
     private readonly absenceService = inject(AbsenceService);
-    private readonly authService = inject(AuthService);
+    private readonly employeeService = inject(EmployeeService);
     private readonly dialog = inject(MatDialog);
-    private readonly route = inject(ActivatedRoute);
-    private readonly router = inject(Router);
+    readonly auth = inject(AuthService);
+    private readonly destroyRef = inject(DestroyRef);
 
-    readonly currentMonth = signal(new Date().getMonth());
-    readonly currentYear = signal(new Date().getFullYear());
     readonly currentView = signal<'calendar' | 'list' | 'approvals'>('calendar');
+    readonly currentDate = signal<Date>(new Date());
+    readonly absences = signal<Absence[]>([]);
+    readonly employees = signal<Employee[]>([]);
+    readonly isLoading = signal(false);
+    readonly hasError = signal(false);
 
-    private readonly absenceResource = rxResource({
-        stream: () => this.absenceService.getAbsences(),
-    });
+    readonly weekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
-    private readonly employeeResource = rxResource({
-        stream: () => this.employeeService.getEmployees(),
-    });
-
-    readonly absences = computed(() => this.absenceResource.value() ?? []);
-    readonly employees = computed(() => this.employeeResource.value() ?? []);
-    readonly canApprove = this.authService.canApprove;
-    readonly pendingCount = computed(() => this.absences().filter((a) => a.status === 'pending').length);
-
-    readonly isLoading = computed(() => this.absenceResource.isLoading() || this.employeeResource.isLoading());
-    readonly hasError = computed(() => this.absenceResource.error() || this.employeeResource.error());
-
-    readonly pendingAbsencesList = computed(() => {
-        return this.absences()
-            .filter((a) => a.status === 'pending')
-            .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
-    });
-
-    readonly myAbsences = computed(() => {
-        const myEmail = this.authService.currentUser()?.email;
-        if (!myEmail) return [];
-        
-        // Find my employee ID based on email
-        const me = this.employees().find(e => e.email === myEmail);
-        if (!me) return [];
-
-        return this.absences().filter(a => a.employee === me.id).sort((a, b) => {
-            return new Date(b.start_date).getTime() - new Date(a.start_date).getTime();
-        });
-    });
-
-    readonly weekdays = WEEKDAYS;
-    readonly typeLegend = Object.entries(TYPE_COLORS).map(([type, { bg, label }]) => ({
-        type,
-        color: bg,
-        label,
+    readonly typeLegend = Object.entries(ABSENCE_TYPE_LABELS).map(([type, label]) => ({
+        type, label, color: ABSENCE_TYPE_COLORS[type] ?? '#9e9e9e',
     }));
 
-    readonly statusLegend: { status: string; label: string }[] = [
-        { status: 'pending', label: 'Ausstehend' },
-        { status: 'approved', label: 'Genehmigt' },
-        { status: 'denied', label: 'Abgelehnt' },
-    ];
+    readonly statusLegend = Object.entries(ABSENCE_STATUS_LABELS).map(([status, label]) => ({
+        status, label,
+    }));
 
-    readonly monthName = computed(() => MONTH_NAMES[this.currentMonth()]);
+    readonly currentYear = computed(() => this.currentDate().getFullYear());
+    readonly currentMonth = computed(() => this.currentDate().getMonth());
 
-    readonly calendarDays = computed<CalendarDay[]>(() => {
-        const year = this.currentYear();
-        const month = this.currentMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-
-        const startOffset = (firstDay.getDay() + 6) % 7;
-        const days: CalendarDay[] = [];
-        const today = new Date();
-
-        for (let i = startOffset - 1; i >= 0; i--) {
-            const date = new Date(year, month, -i);
-            days.push({ date, dayOfMonth: date.getDate(), isCurrentMonth: false, isToday: false });
-        }
-
-        for (let d = 1; d <= lastDay.getDate(); d++) {
-            const date = new Date(year, month, d);
-            days.push({
-                date,
-                dayOfMonth: d,
-                isCurrentMonth: true,
-                isToday:
-                    d === today.getDate() &&
-                    month === today.getMonth() &&
-                    year === today.getFullYear(),
-            });
-        }
-
-        const remaining = 7 - (days.length % 7);
-        if (remaining < 7) {
-            for (let i = 1; i <= remaining; i++) {
-                const date = new Date(year, month + 1, i);
-                days.push({ date, dayOfMonth: i, isCurrentMonth: false, isToday: false });
-            }
-        }
-
-        return days;
+    readonly monthName = computed(() => {
+        return this.currentDate().toLocaleString('de-DE', { month: 'long' });
     });
 
-    readonly calendarWeeks = computed<CalendarWeek[]>(() => {
-        const days = this.calendarDays();
-        const weeks: CalendarWeek[] = [];
-        for (let i = 0; i < days.length; i += 7) {
-            const weekDays = days.slice(i, i + 7);
-            weeks.push({ kw: getIsoWeek(weekDays[0].date), days: weekDays });
-        }
-        return weeks;
+    readonly canApprove = computed(() => this.auth.canApprove());
+
+    readonly myAbsences = computed(() => {
+        const empId = this.auth.currentUser()?.employee_id;
+        return this.absences().filter((a) => a.employee === empId);
     });
 
-    readonly absencesByDate = computed(() => {
-        const map = new Map<string, Absence[]>();
-        for (const absence of this.absences()) {
-            const start = new Date(absence.start_date + 'T00:00:00');
-            const end = new Date(absence.end_date + 'T00:00:00');
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                const key = formatLocalDate(d);
-                const list = map.get(key);
-                if (list) {
-                    list.push(absence);
-                } else {
-                    map.set(key, [absence]);
-                }
-            }
-        }
-        return map;
+    readonly pendingAbsencesList = computed(() => {
+        return this.absences().filter((a) => a.status === 'pending');
     });
+
+    readonly pendingCount = computed(() => this.pendingAbsencesList().length);
 
     ngOnInit() {
-        this.route.queryParams.subscribe(params => {
-            const view = params['view'];
-            if (view === 'list' || view === 'approvals' || view === 'calendar') {
-                this.currentView.set(view);
-            }
+        this.loadData();
+    }
+
+    reload() {
+        this.loadData();
+    }
+
+    loadData() {
+        this.isLoading.set(true);
+        this.hasError.set(false);
+
+        this.employeeService.getAllEmployees().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+            next: (emps) => this.employees.set(emps),
+            error: () => this.hasError.set(true),
+        });
+
+        this.absenceService.getAllAbsences().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+            next: (data) => {
+                this.absences.set(data);
+                this.isLoading.set(false);
+            },
+            error: () => {
+                this.hasError.set(true);
+                this.isLoading.set(false);
+            },
         });
     }
 
     setView(view: 'calendar' | 'list' | 'approvals') {
         this.currentView.set(view);
-        this.router.navigate([], {
-            relativeTo: this.route,
-            queryParams: { view },
-            queryParamsHandling: 'merge',
-        });
     }
 
     prevMonth() {
-        if (this.currentMonth() === 0) {
-            this.currentMonth.set(11);
-            this.currentYear.update((y) => y - 1);
-        } else {
-            this.currentMonth.update((m) => m - 1);
-        }
+        const d = new Date(this.currentDate());
+        d.setMonth(d.getMonth() - 1);
+        this.currentDate.set(d);
     }
 
     nextMonth() {
-        if (this.currentMonth() === 11) {
-            this.currentMonth.set(0);
-            this.currentYear.update((y) => y + 1);
-        } else {
-            this.currentMonth.update((m) => m + 1);
-        }
+        const d = new Date(this.currentDate());
+        d.setMonth(d.getMonth() + 1);
+        this.currentDate.set(d);
     }
 
     goToToday() {
-        const now = new Date();
-        this.currentMonth.set(now.getMonth());
-        this.currentYear.set(now.getFullYear());
-    }
-
-    getAbsencesForDay(date: Date): Absence[] {
-        return this.absencesByDate().get(formatLocalDate(date)) ?? [];
+        this.currentDate.set(new Date());
     }
 
     getColor(type: string): string {
-        return TYPE_COLORS[type]?.bg ?? '#999';
+        return ABSENCE_TYPE_COLORS[type] ?? '#9e9e9e';
     }
 
     getLabel(type: string): string {
-        return TYPE_COLORS[type]?.label ?? type;
+        return ABSENCE_TYPE_LABELS[type] ?? type;
     }
 
     getStatusLabel(status?: string): string {
-        return STATUS_LABELS[status ?? 'pending'] ?? status ?? '';
+        return status ? (ABSENCE_STATUS_LABELS[status] ?? status) : '-';
+    }
+
+    getAbsencesForDay(date: Date): Absence[] {
+        const dateStr = date.toISOString().slice(0, 10);
+        return this.absences().filter((a) => a.start_date <= dateStr && a.end_date >= dateStr);
+    }
+
+    getAbsenceSummary(date: Date): { type: string, label: string, color: string, count: number }[] {
+        const dailyAbsences = this.getAbsencesForDay(date);
+        const summaryMap = new Map<string, number>();
+        
+        dailyAbsences.forEach(abs => {
+            summaryMap.set(abs.absence_type, (summaryMap.get(abs.absence_type) || 0) + 1);
+        });
+
+        return Array.from(summaryMap.entries()).map(([type, count]) => ({
+            type,
+            count,
+            label: this.getLabel(type),
+            color: this.getColor(type)
+        }));
     }
 
     getTooltip(abs: Absence): string {
-        return `${abs.employee_name} – ${this.getLabel(abs.absence_type)} (${this.getStatusLabel(abs.status)})`;
+        const status = this.getStatusLabel(abs.status || '');
+        return `${abs.employee_name}: ${this.getLabel(abs.absence_type)} (${status})`;
     }
+
+    calendarWeeks = computed(() => {
+        const year = this.currentYear();
+        const month = this.currentMonth();
+        const firstDayOfMonth = new Date(year, month, 1);
+        const lastDayOfMonth = new Date(year, month + 1, 0);
+
+        // Adjust to Monday
+        const start = new Date(firstDayOfMonth);
+        const startDay = start.getDay(); // 0 is Sunday
+        const diff = startDay === 0 ? -6 : 1 - startDay;
+        start.setDate(start.getDate() + diff);
+
+        const end = new Date(lastDayOfMonth);
+        const endDay = end.getDay();
+        const endDiff = endDay === 0 ? 0 : 7 - endDay;
+        end.setDate(end.getDate() + endDiff);
+
+        const weeks: { kw: number; days: { date: Date; dayOfMonth: number; isCurrentMonth: boolean; isToday: boolean }[] }[] = [];
+        let current = new Date(start);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        while (current <= end) {
+            const days = [];
+            const kw = getIsoWeek(current);
+            for (let i = 0; i < 7; i++) {
+                days.push({
+                    date: new Date(current),
+                    dayOfMonth: current.getDate(),
+                    isCurrentMonth: current.getMonth() === month,
+                    isToday: current.getTime() === today.getTime(),
+                });
+                current.setDate(current.getDate() + 1);
+            }
+            weeks.push({ kw, days });
+        }
+        return weeks;
+    });
 
     openForm(absence?: Absence) {
-        const data: AbsenceFormData = {
-            absence,
-            employees: this.employees(),
-            canApprove: this.canApprove(),
-            currentUserEmail: this.authService.currentUser()?.email,
-        };
+        const dialogRef = this.dialog.open(AbsenceFormComponent, {
+            width: '500px',
+            data: {
+                absence: absence ? { ...absence } : null,
+                employees: this.employees(),
+                canApprove: this.canApprove(),
+                currentUserEmail: this.auth.currentUser()?.email,
+            },
+        });
 
-        this.dialog
-            .open(AbsenceFormComponent, { data, width: '500px' })
-            .afterClosed()
-            .subscribe((result) => {
-                if (result) this.reload();
-            });
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result) {
+                this.loadData();
+            }
+        });
     }
 
-    reload() {
-        this.absenceResource.reload();
-        this.employeeResource.reload();
+    openDayDetails(date: Date) {
+        this.dialog.open(DayDetailDialogComponent, {
+            width: '450px',
+            data: {
+                date: date,
+                absences: this.getAbsencesForDay(date)
+            }
+        });
     }
 }
+

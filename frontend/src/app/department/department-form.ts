@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { DepartmentService } from '../shared/department.service';
 import { Department } from '../shared/models';
 
@@ -16,27 +17,20 @@ import { Department } from '../shared/models';
 export class DepartmentFormComponent {
     private readonly service = inject(DepartmentService);
     private readonly ref = inject(MatDialogRef<DepartmentFormComponent>);
+    private readonly snackBar = inject(MatSnackBar);
     private readonly data = inject<Department>(MAT_DIALOG_DATA, { optional: true });
 
-    readonly isEditMode = signal(false);
-    dept: Department = { name: '', description: '' };
+    readonly isEditMode = !!this.data;
+    dept: Department = this.data ? { ...this.data } : { name: '', description: '' };
 
-    constructor() {
-        if (this.data) {
-            this.dept = { ...this.data };
-            this.isEditMode.set(true);
-        }
-    }
+    save(): void {
+        const request = this.isEditMode
+            ? this.service.updateDepartment(this.dept.id!, this.dept)
+            : this.service.createDepartment(this.dept);
 
-    save() {
-        if (this.isEditMode()) {
-            this.service.updateDepartment(this.dept.id!, this.dept).subscribe(() => {
-                this.ref.close(true);
-            });
-        } else {
-            this.service.createDepartment(this.dept).subscribe(() => {
-                this.ref.close(true);
-            });
-        }
+        request.subscribe({
+            next: () => this.ref.close(true),
+            error: () => this.snackBar.open('Fehler beim Speichern der Abteilung.', 'OK', { duration: 4000 }),
+        });
     }
 }

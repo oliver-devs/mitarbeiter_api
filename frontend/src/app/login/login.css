@@ -22,12 +22,12 @@
     align-items: center;
     justify-content: center;
     gap: 16px;
-    margin-bottom: 24px;
+    margin-block-end: 24px;
 }
 
 .company-logo {
     width: 48px;
-    height: 48px;
+    aspect-ratio: 1;
 }
 
 .company-name {
@@ -111,7 +111,7 @@
         width: 32px;
         height: 32px;
         color: var(--mat-sys-primary);
-        margin-bottom: 16px;
+        margin-block-end: 16px;
         opacity: 0.8;
     }
 

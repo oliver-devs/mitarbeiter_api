@@ -39,6 +39,25 @@
     gap: 20px;
 }
 
+.gender-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 8px 0;
+
+    mat-radio-group {
+        display: flex;
+        gap: 20px;
+    }
+}
+
+.gender-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface-variant);
+    min-width: 90px;
+}
+
 .full-width {
     width: 100%;
 }
@@ -69,21 +88,27 @@
     font-weight: 500;
 }
 
-@media (max-width: 600px) {
-    .form-container {
+.form-container {
+    @media (max-width: 600px) {
         padding: 10px;
         padding-block-start: 20px;
     }
+}
 
-    .form-content {
+.form-content {
+    @media (max-width: 600px) {
         padding: 0 20px 20px;
     }
+}
 
-    .form-header {
+.form-header {
+    @media (max-width: 600px) {
         padding: 24px 20px 16px;
     }
+}
 
-    .form-row {
+.form-row {
+    @media (max-width: 600px) {
         flex-direction: column;
         gap: 0;
     }

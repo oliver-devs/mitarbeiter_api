@@ -66,6 +66,19 @@
                     }
                 </mat-form-field>
 
+                <div class="gender-row">
+                    <label class="gender-label">Geschlecht</label>
+                    <mat-radio-group
+                        [ngModel]="employee().gender"
+                        (ngModelChange)="updateField('gender', $event)"
+                        name="gender"
+                    >
+                        <mat-radio-button value="male">Männlich</mat-radio-button>
+                        <mat-radio-button value="female">Weiblich</mat-radio-button>
+                        <mat-radio-button value="diverse">Divers</mat-radio-button>
+                    </mat-radio-group>
+                </div>
+
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Abteilung</mat-label>
                     <mat-select

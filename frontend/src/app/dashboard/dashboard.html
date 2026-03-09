@@ -1,46 +1,39 @@
 <section class="dashboard-container">
-    <header class="welcome-header">
+    <header class="page-header">
         <h1>
-            Willkommen, <span class="highlight-name">{{ formattedName() }}</span>!
+            Willkommen, <span class="highlight-text">{{ formattedName() }}</span>!
         </h1>
-        <p class="subtitle">{{ subtitle() }}</p>
+        <p class="subtitle">
+            {{ subtitle() }}
+            @if (auth.isManagement()) {
+                <span class="badge-inline mgmt">Management</span>
+            }
+            @if (auth.canApprove()) {
+                <span class="badge-inline approve">Genehmiger</span>
+            }
+        </p>
     </header>
 
-    <!-- Alle Mitarbeiter: Eigene Abteilung -->
+    <!-- KPIs: Schneller Überblick -->
     <div class="kpi-grid">
         <mat-card class="kpi-card blue-card clickable" [routerLink]="['/list']" [queryParams]="{ view: 'department' }">
             <div class="kpi-content">
                 <div class="kpi-value">{{ myDepartmentEmployees().length }}</div>   
-                <div class="kpi-label">Meine Abteilung</div>
+                <div class="kpi-label">Mein Team</div>
             </div>
             <mat-icon class="kpi-icon">group</mat-icon>
         </mat-card>
 
-        <mat-card class="kpi-card purple-card clickable" [routerLink]="['/calendar']" [queryParams]="{ view: 'calendar' }">    
+        <mat-card class="kpi-card purple-card">    
             <div class="kpi-content">
                 <div class="kpi-value">{{ myDepartmentAbsent().length }}</div>      
-                <div class="kpi-label">Abwesend (Abteilung)</div>
+                <div class="kpi-label">Abwesend (Team)</div>
+                <button mat-button class="quick-action-btn" (click)="requestAbsence()">
+                    <mat-icon>add_circle</mat-icon> Beantragen
+                </button>
             </div>
             <mat-icon class="kpi-icon">event_busy</mat-icon>
         </mat-card>
-
-        @if (auth.isManagement()) {
-            <mat-card class="kpi-card teal-card clickable" [routerLink]="['/list']" [queryParams]="{ view: 'position' }">      
-                <div class="kpi-content">
-                    <div class="kpi-value">{{ totalEmployees() }}</div>
-                    <div class="kpi-label">Mitarbeiter gesamt</div>
-                </div>
-                <mat-icon class="kpi-icon">groups</mat-icon>
-            </mat-card>
-
-            <mat-card class="kpi-card orange-card clickable" routerLink="/settings">
-                <div class="kpi-content">
-                    <div class="kpi-value">{{ departments().length }}</div>
-                    <div class="kpi-label">Abteilungen</div>
-                </div>
-                <mat-icon class="kpi-icon">domain</mat-icon>
-            </mat-card>
-        }
 
         @if (auth.canApprove()) {
             <mat-card class="kpi-card red-card clickable" [routerLink]="['/calendar']" [queryParams]="{ view: 'approvals' }">
@@ -51,60 +44,115 @@
                 <mat-icon class="kpi-icon">pending_actions</mat-icon>
             </mat-card>
         }
-        </div>
 
-        <!-- ZEITERFASSUNG WIDGET -->
-        <div class="time-tracking-section">
-            <mat-card class="time-tracking-widget" [class.is-active]="activeTimeEntry()">
+        @if (auth.isManagement()) {
+            <mat-card class="kpi-card teal-card clickable" [routerLink]="['/list']">      
+                <div class="kpi-content">
+                    <div class="kpi-value">{{ totalEmployees() }}</div>
+                    <div class="kpi-label">Mitarbeiter gesamt</div>
+                </div>
+                <mat-icon class="kpi-icon">groups</mat-icon>
+            </mat-card>
+        }
+    </div>
+
+    <!-- Main Grid: Hauptinhalte links, Sidebar rechts -->
+    <div class="dashboard-main-grid">
+        
+        <!-- LINKE SPALTE: Alles für MICH -->
+        <div class="dashboard-column">
+            
+            <!-- Rechtliche Warnhinweise -->
+            @for (alert of legalAlerts(); track alert.message) {
+                <div class="legal-alert" [class]="alert.type">
+                    <mat-icon>{{ alert.type === 'error' ? 'report_problem' : 'info' }}</mat-icon>
+                    <span>{{ alert.message }}</span>
+                </div>
+            }
+
+            <!-- Zeiterfassung -->
+            @let entry = activeTimeEntry();
+            @let onBreak = activeBreak();
+            <mat-card class="time-tracking-widget" [class.is-active]="entry">
                 <mat-card-content class="time-content">
-                    <div class="time-info">
-                        @if (activeTimeEntry()) {
-                            <div class="status-indicator active"></div>
-                            <div class="time-text">
-                                <h3>Dienst läuft</h3>
+                    <div class="time-main-info">
+                        <div
+                            class="status-indicator"
+                            [class.active]="entry && !onBreak"
+                            [class.on-break]="onBreak"
+                            [class.inactive]="!entry"
+                        ></div>
+                        <div class="time-status-text">
+                            @if (onBreak) { In Pause }
+                            @else if (entry) { Dienst läuft }
+                            @else { Ausgestempelt }
+                        </div>
+
+                        <div class="timer-display">
+                            @if (entry) {
                                 <div class="timer">{{ workedTodayStr() }}</div>
-                            </div>
-                        } @else {
-                            <div class="status-indicator inactive"></div>
-                            <div class="time-text">
-                                <h3>Ausgestempelt</h3>
-                                <p>Bereit für den Arbeitstag?</p>
-                            </div>
-                        }
+                            } @else {
+                                <div class="timer-placeholder">Bereit für den Tag?</div>
+                            }
+                        </div>
                     </div>
 
-                    <div class="time-actions">
-                        @if (activeTimeEntry()) {
-                            <button mat-flat-button color="warn" class="punch-btn punch-out" (click)="punchOut()">
-                                <mat-icon>stop_circle</mat-icon> Ausstempeln
-                            </button>
+                    <div class="weekly-summary-box">
+                        <div class="weekly-label">Diese Woche: <strong>{{ weeklyWorkedStr() }}</strong></div>
+                        <div class="progress-bar-mini">
+                            <div class="progress-fill" [style.width.%]="weeklyProgressPercent()"></div>
+                        </div>
+                    </div>
+
+                    <div class="time-action-grid">
+                        @if (entry) {
+                            @if (onBreak) {
+                                <button mat-flat-button color="primary" class="action-btn-large" (click)="endBreak()">
+                                    <mat-icon>play_circle</mat-icon> Pause beenden
+                                </button>
+                            } @else {
+                                <button mat-stroked-button class="action-btn flex-grow pause-btn-main" (click)="startBreak()">
+                                    <mat-icon>pause_circle</mat-icon> Pause
+                                </button>
+                                <button mat-flat-button color="warn" class="action-btn flex-grow" (click)="punchOut()">
+                                    <mat-icon>stop_circle</mat-icon> Stopp
+                                </button>
+                            }
                         } @else {
-                            <button mat-flat-button color="primary" class="punch-btn punch-in" (click)="punchIn()">
-                                <mat-icon>play_circle</mat-icon> Einstempeln
+                            <button mat-flat-button color="primary" class="action-btn-large" (click)="punchIn()">
+                                <mat-icon>play_circle</mat-icon> Arbeit starten
                             </button>
                         }
                     </div>
                 </mat-card-content>
             </mat-card>
 
+            <!-- Zeithistorie -->
             @if (completedEntries().length > 0) {
-                <mat-card class="recent-times-card">
+                <mat-card class="recent-times-card section-card">
                     <mat-card-header>
-                        <mat-card-title>Letzte Einträge</mat-card-title>
+                        <mat-card-title>Letzte Zeiteinträge</mat-card-title>
                     </mat-card-header>
                     <mat-card-content>
                         <div class="recent-times-list">
                             @for (entry of completedEntries(); track entry.id) {
                                 <div class="recent-time-item">
-                                    <div class="date-col">
-                                        <span class="date">{{ entry.date }}</span>
+                                    <div class="entry-date">
+                                        {{ shortDateFormat(entry.date) }}
                                     </div>
-                                    <div class="time-range-col">
-                                        <mat-icon>schedule</mat-icon>
-                                        <span>{{ formatTime(entry.start_time) }} – {{ formatTime(entry.end_time) }}</span>
+                                    <div class="entry-range">
+                                        <div class="time-main">
+                                            <mat-icon>schedule</mat-icon>
+                                            <span>{{ formatTime(entry.start_time) }} – {{ formatTime(entry.end_time) }}</span>
+                                        </div>
+                                        @if (calculateBreakMs(entry.breaks) > 0) {
+                                            <div class="break-info">
+                                                davon {{ getBreakDurationStr(entry.breaks) }}
+                                            </div>
+                                        }
                                     </div>
-                                    <div class="duration-col">
-                                        <span class="duration-badge">{{ formatDuration(entry.start_time, entry.end_time) }}</span>
+                                    <div class="entry-duration">
+                                        {{ formatDuration(entry.start_time, entry.end_time) }}
                                     </div>
                                 </div>
                             }
@@ -114,157 +162,96 @@
             }
         </div>
 
-        <div class="content-grid">
-        <!-- Alle: Kollegen in der Abteilung -->
-        <mat-card class="section-card">
-            <mat-card-header>
-                <mat-card-title>Mein Team</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <div class="team-list">
-                    @for (emp of myDepartmentEmployees(); track emp.id) {
-                        <div class="team-item">
-                            <div class="avatar-circle">
-                                {{ emp.first_name.charAt(0) }}{{ emp.last_name.charAt(0) }}
-                            </div>
-                            <div class="team-info">
-                                <div class="team-name">{{ emp.first_name }} {{ emp.last_name }}</div>
-                                <div class="team-role">{{ emp.position_title || '-' }}</div>
-                            </div>
-                        </div>
-                    } @empty {
-                        <p class="empty-message">Keine Kollegen gefunden.</p>
-                    }
-                </div>
-            </mat-card-content>
-        </mat-card>
-
-        <!-- Alle: Abwesende Kollegen heute -->
-        @if (absentToday().length > 0) {
+        <!-- RECHTE SPALTE: Alles über das TEAM -->
+        <div class="dashboard-column">
+            
+            <!-- Mein Team -->
             <mat-card class="section-card">
                 <mat-card-header>
-                    <mat-card-title>Heute abwesend</mat-card-title>
+                    <mat-card-title>Mein Team</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
                     <div class="team-list">
-                        @for (absence of absentToday(); track absence.id) {
-                            <div class="team-item">
-                                <div class="avatar-circle absence-avatar">
-                                    @switch (absence.absence_type) {
-                                        @case ('vacation') { <mat-icon>beach_access</mat-icon> }
-                                        @case ('sick') { <mat-icon>local_hospital</mat-icon> }
-                                        @case ('homeoffice') { <mat-icon>home</mat-icon> }
-                                        @default { <mat-icon>event_busy</mat-icon> }
-                                    }
-                                </div>
-                                <div class="team-info">
-                                    <div class="team-name">{{ absence.employee_name }}</div>
-                                    <div class="team-role">
-                                        bis {{ absence.end_date }}
+                        @for (emp of myDepartmentEmployees(); track emp.id) {
+                            <div class="team-item clickable" role="button" tabindex="0" (click)="openEmployeeInfo(emp)" (keydown.enter)="openEmployeeInfo(emp)">
+                                <div class="avatar-wrapper">
+                                    <div class="avatar-circle">
+                                        {{ emp.first_name.charAt(0) }}{{ emp.last_name.charAt(0) }}
                                     </div>
-                                </div>
-                                <span class="absence-type-badge" [attr.data-type]="absence.absence_type">
-                                    @switch (absence.absence_type) {
-                                        @case ('vacation') { Urlaub }
-                                        @case ('sick') { Krank }
-                                        @case ('homeoffice') { Homeoffice }
-                                        @default { Sonstiges }
-                                    }
-                                </span>
-                            </div>
-                        }
-                    </div>
-                </mat-card-content>
-            </mat-card>
-        }
-
-        <!-- Genehmiger: Offene Anträge -->
-        @if (auth.canApprove() && pendingRequests().length > 0) {
-            <mat-card class="section-card pending-card">
-                <mat-card-header>
-                    <mat-card-title>Offene Anträge</mat-card-title>
-                    <button mat-button color="primary" routerLink="/calendar" class="show-all-btn">
-                        Zum Kalender
-                    </button>
-                </mat-card-header>
-                <mat-card-content>
-                    <div class="team-list">
-                        @for (absence of pendingRequests().slice(0, 5); track absence.id) {
-                            <div class="team-item">
-                                <div class="avatar-circle pending-avatar">
-                                    <mat-icon>schedule</mat-icon>
-                                </div>
-                                <div class="team-info">
-                                    <div class="team-name">{{ absence.employee_name }}</div>
-                                    <div class="team-role">
-                                        {{ absence.start_date }} – {{ absence.end_date }}
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </mat-card-content>
-            </mat-card>
-        }
-
-        <!-- Management: Abteilungsübersicht -->
-        @if (auth.isManagement()) {
-            <mat-card class="section-card">
-                <mat-card-header>
-                    <mat-card-title>Mitarbeiter pro Abteilung</mat-card-title>
-                </mat-card-header>
-                <mat-card-content>
-                    <div class="bar-chart">
-                        @for (dept of departments(); track dept.id) {
-                            <div class="chart-row">
-                                <div class="chart-label" [matTooltip]="dept.name">{{ dept.name }}</div>
-                                <div class="chart-bar-container">
-                                    <div
-                                        class="chart-bar"
-                                        [style.width.%]="
-                                            ((dept.employee_count || 0) / maxDepartmentCount()) * 100
-                                        "
+                                    <div 
+                                        class="status-dot" 
+                                        [attr.data-status]="emp.current_status"
+                                        [matTooltip]="getStatusLabel(emp.current_status)"
                                     ></div>
-                                </div>
-                                <div class="chart-value">{{ dept.employee_count || 0 }}</div>
-                            </div>
-                        } @empty {
-                            <p class="empty-message">Keine Abteilungen gefunden.</p>
-                        }
-                    </div>
-                </mat-card-content>
-            </mat-card>
-
-            <mat-card class="section-card">
-                <mat-card-header>
-                    <mat-card-title>Neueste Zugänge</mat-card-title>
-                    <button mat-button color="primary" routerLink="/list" class="show-all-btn">
-                        Alle anzeigen
-                    </button>
-                </mat-card-header>
-                <mat-card-content>
-                    <div class="team-list">
-                        @for (emp of recentEmployees(); track emp.id) {
-                            <div class="team-item">
-                                <div class="avatar-circle">
-                                    {{ emp.first_name.charAt(0) }}{{ emp.last_name.charAt(0) }}
                                 </div>
                                 <div class="team-info">
                                     <div class="team-name">
                                         {{ emp.first_name }} {{ emp.last_name }}
+                                        @if (isNewEmployee(emp)) {
+                                            <span class="new-badge" matTooltip="Neu im Team">
+                                                <mat-icon>auto_awesome</mat-icon>
+                                                Neu
+                                            </span>
+                                        }
                                     </div>
-                                    <div class="team-role">{{ emp.department_name }}</div>
+                                    <div class="team-role">{{ emp.position_title || '-' }}</div>
                                 </div>
-                                <button mat-icon-button routerLink="/edit/{{ emp.id }}">
-                                    <mat-icon class="edit-icon">edit</mat-icon>
-                                </button>
                             </div>
-                        } @empty {
-                            <p class="empty-message">Noch keine Mitarbeiter.</p>
                         }
                     </div>
                 </mat-card-content>
             </mat-card>
-        }
+
+            <!-- Social Events -->
+            @if (socialEvents().length > 0) {
+                <mat-card class="section-card social-card">
+                    <mat-card-header>
+                        <mat-card-title>🎉 Feierlichkeiten heute</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="team-list">
+                            @for (event of socialEvents(); track event.name) {
+                                <div class="team-item social-item">
+                                    <mat-icon class="social-icon">
+                                        {{ event.type === 'birthday' ? 'cake' : 'celebration' }}
+                                    </mat-icon>
+                                    <div class="team-info">
+                                        <div class="team-name">{{ event.name }}</div>
+                                        <div class="team-role">
+                                            {{ event.type === 'birthday' ? 'Hat heute Geburtstag! 🎂' : (event.years + '. Firmenjubiläum! 🚀') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            }
+
+            <!-- Management: Neue Mitarbeiter (Nur HR) -->
+            @if (auth.isManagement() && auth.currentUser()?.department_name === 'Personal' && recentEmployees().length > 0) {
+                <mat-card class="section-card">
+                    <mat-card-header>
+                        <mat-card-title>Neue Mitarbeiter (Global)</mat-card-title>
+                        <button mat-button color="primary" routerLink="/list" class="show-all-btn">Alle</button>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="team-list">
+                            @for (emp of recentEmployees(); track emp.id) {
+                                <div class="team-item">
+                                    <div class="avatar-circle">
+                                        {{ emp.first_name.charAt(0) }}{{ emp.last_name.charAt(0) }}
+                                    </div>
+                                    <div class="team-info">
+                                        <div class="team-name">{{ emp.first_name }} {{ emp.last_name }}</div>
+                                        <div class="team-role">{{ emp.department_name }}</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            }
+        </div>
     </div>
 </section>

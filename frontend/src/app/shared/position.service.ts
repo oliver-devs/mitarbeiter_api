@@ -11,12 +11,8 @@ export class PositionService {
     private readonly apiUrl = environment.apiUrl;
 
     getPositions(departmentId?: number) {
-        if (departmentId) {
-            return this.http.get<Position[]>(`${this.apiUrl}positions/`, {
-                params: { department: departmentId.toString() },
-            });
-        }
-        return this.http.get<Position[]>(`${this.apiUrl}positions/`);
+        const params = departmentId ? { params: { department: departmentId.toString() } } : {};
+        return this.http.get<Position[]>(`${this.apiUrl}positions/`, params);
     }
 
     createPosition(position: Partial<Position>) {

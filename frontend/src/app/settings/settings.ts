@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 
 import { MatTabsModule } from '@angular/material/tabs';
@@ -22,6 +23,8 @@ import { ThemeService, MODE_OPTIONS, COLOR_THEMES } from '../shared/theme.servic
 import { PositionFormComponent } from './position-form';
 import { DepartmentFormComponent } from '../department/department-form';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog';
+import { DepartmentStatsDialogComponent } from './department-stats-dialog';
+import { groupAlphabetically } from '../shared/date-utils';
 
 @Component({
     selector: 'app-settings',
@@ -48,12 +51,36 @@ export class SettingsComponent implements OnInit {
     readonly auth = inject(AuthService);
     private readonly dialog = inject(MatDialog);
     private readonly snackBar = inject(MatSnackBar);
+    private readonly destroyRef = inject(DestroyRef);
 
     readonly themeService = inject(ThemeService);
     readonly modeOptions = MODE_OPTIONS;
     readonly colorThemes = COLOR_THEMES;
 
     readonly personalView = signal<'profile' | 'appearance'>('profile');
+
+    private static readonly GENDER_LABELS: Record<string, string> = {
+        male: 'Männlich', female: 'Weiblich', diverse: 'Divers',
+    };
+
+    readonly profileData = computed(() => {
+        const user = this.auth.currentUser();
+        if (!user) return [];
+        return [
+            { icon: 'email', label: 'E-Mail', value: user.email },
+            { icon: 'wc', label: 'Geschlecht', value: SettingsComponent.GENDER_LABELS[user.gender ?? ''] ?? '-' },
+            { icon: 'domain', label: 'Abteilung', value: user.department_name ?? '-' },
+            { icon: 'badge', label: 'Position', value: user.position_title ?? '-' },
+            { icon: 'cake', label: 'Geburtstag', value: user.birthday ? this.formatDate(user.birthday) : '-' },
+            { icon: 'calendar_today', label: 'Im Unternehmen seit', value: user.created_at ? this.formatDate(user.created_at) : '-' },
+        ];
+    });
+
+    private formatDate(dateStr: string): string {
+        return new Date(dateStr).toLocaleDateString('de-DE', {
+            day: '2-digit', month: 'long', year: 'numeric',
+        });
+    }
     readonly departments = signal<Department[]>([]);
     readonly selectedDepartment = signal<Department | null>(null);
     readonly positions = signal<Position[]>([]);
@@ -75,42 +102,37 @@ export class SettingsComponent implements OnInit {
 
     // --- Computed for Alphabetical Filtering ---
 
+    private readonly alphabeticalDepartments = computed(() =>
+        groupAlphabetically(this.departments(), d => d.name),
+    );
+
+    private readonly alphabeticalPositions = computed(() =>
+        groupAlphabetically(this.positions(), p => p.title),
+    );
+
     readonly availableLetters = computed(() => {
-        const items = this.selectedDepartment() ? this.positions() : this.departments();
-        const letters = new Set<string>();
-        for (const item of items) {
-            const name = this.selectedDepartment() ? (item as Position).title : (item as Department).name;
-            let letter = name.charAt(0).toUpperCase();
-            if (!/[A-Z]/.test(letter)) {
-                letter = '#';
-            }
-            letters.add(letter);
-        }
-        return Array.from(letters).sort();
+        const groups = this.selectedDepartment() ? this.alphabeticalPositions() : this.alphabeticalDepartments();
+        return groups.map(g => g.letter);
     });
 
     readonly filteredDepartments = computed(() => {
         const letter = this.selectedLetter();
-        const depts = this.departments();
-        if (!letter) return depts;
-        
-        return depts.filter(d => {
-            let l = d.name.charAt(0).toUpperCase();
-            if (!/[A-Z]/.test(l)) l = '#';
-            return l === letter;
-        });
+        const groups = this.alphabeticalDepartments();
+        if (!letter) return this.departments();
+        return groups.find(g => g.letter === letter)?.items ?? [];
     });
 
     readonly filteredPositions = computed(() => {
         const letter = this.selectedLetter();
-        const pos = this.positions();
-        if (!letter) return pos;
-        
-        return pos.filter(p => {
-            let l = p.title.charAt(0).toUpperCase();
-            if (!/[A-Z]/.test(l)) l = '#';
-            return l === letter;
-        });
+        const groups = this.alphabeticalPositions();
+        if (!letter) return this.positions();
+        return groups.find(g => g.letter === letter)?.items ?? [];
+    });
+
+    readonly maxDepartmentCount = computed(() => {
+        const depts = this.departments();
+        if (!depts || depts.length === 0) return 1;
+        return Math.max(...depts.map((d) => d.employee_count || 0));
     });
 
     ngOnInit() {
@@ -120,11 +142,7 @@ export class SettingsComponent implements OnInit {
     }
 
     toggleLetter(letter: string) {
-        if (this.selectedLetter() === letter) {
-            this.selectedLetter.set(null);
-        } else {
-            this.selectedLetter.set(letter);
-        }
+        this.selectedLetter.set(this.selectedLetter() === letter ? null : letter);
     }
 
     saveCompanyData() {
@@ -132,12 +150,18 @@ export class SettingsComponent implements OnInit {
         this.snackBar.open('Unternehmensdaten erfolgreich gespeichert!', 'OK', { duration: 3000 });
     }
 
+    openStatsDialog() {
+        this.dialog.open(DepartmentStatsDialogComponent, {
+            width: '500px',
+            data: { departments: this.departments() }
+        });
+    }
+
     // --- Abteilungen ---
 
     private loadDepartments() {
-        this.departmentService.getDepartments().subscribe({
+        this.departmentService.getDepartments().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (data) => this.departments.set(data),
-            error: (err) => console.error('Fehler beim Laden der Abteilungen:', err),
         });
     }
 
@@ -175,9 +199,12 @@ export class SettingsComponent implements OnInit {
 
         ref.afterClosed().subscribe((result) => {
             if (result === true) {
-                this.departmentService.deleteDepartment(dept.id!).subscribe(() => {
-                    this.loadDepartments();
-                    this.snackBar.open('Abteilung gelöscht.', 'OK', { duration: 3000 });
+                this.departmentService.deleteDepartment(dept.id!).subscribe({
+                    next: () => {
+                        this.loadDepartments();
+                        this.snackBar.open('Abteilung gelöscht.', 'OK', { duration: 3000 });
+                    },
+                    error: () => this.snackBar.open('Fehler beim Löschen der Abteilung.', 'OK', { duration: 4000 }),
                 });
             }
         });
@@ -199,9 +226,8 @@ export class SettingsComponent implements OnInit {
     }
 
     private loadPositions(departmentId: number) {
-        this.positionService.getPositions(departmentId).subscribe({
+        this.positionService.getPositions(departmentId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (data) => this.positions.set(data),
-            error: (err) => console.error('Fehler beim Laden der Positionen:', err),
         });
     }
 
@@ -236,11 +262,14 @@ export class SettingsComponent implements OnInit {
 
         ref.afterClosed().subscribe((result) => {
             if (result === true) {
-                this.positionService.deletePosition(pos.id).subscribe(() => {
-                    const dept = this.selectedDepartment();
-                    if (dept) this.loadPositions(dept.id!);
-                    this.loadDepartments();
-                    this.snackBar.open('Position gelöscht.', 'OK', { duration: 3000 });
+                this.positionService.deletePosition(pos.id).subscribe({
+                    next: () => {
+                        const dept = this.selectedDepartment();
+                        if (dept) this.loadPositions(dept.id!);
+                        this.loadDepartments();
+                        this.snackBar.open('Position gelöscht.', 'OK', { duration: 3000 });
+                    },
+                    error: () => this.snackBar.open('Fehler beim Löschen der Position.', 'OK', { duration: 4000 }),
                 });
             }
         });
@@ -261,6 +290,7 @@ export class SettingsComponent implements OnInit {
                 old_password: this.passwordData.old_password,
                 new_password: this.passwordData.new_password,
             })
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: () => {
                     this.snackBar.open('Passwort erfolgreich geändert!', 'OK', { duration: 3000 });
@@ -270,8 +300,7 @@ export class SettingsComponent implements OnInit {
                         confirm_password: '',
                     };
                 },
-                error: (err) => {
-                    console.error('Fehler beim Passwort ändern:', err);
+                error: () => {
                     this.snackBar.open('Fehler: Altes Passwort ist falsch.', 'OK', {
                         duration: 4000,
                     });

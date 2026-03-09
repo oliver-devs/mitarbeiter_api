@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -8,8 +9,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatDialog } from '@angular/material/dialog';
-
 import { EmployeeService } from '../shared/employee.service';
 import { DepartmentService } from '../shared/department.service';
 import { PositionService } from '../shared/position.service';
@@ -27,6 +28,7 @@ import { PasswordDialogComponent } from '../shared/password-dialog';
         RouterModule,
         MatIconModule,
         MatSelectModule,
+        MatRadioModule,
     ],
     templateUrl: './employee-form.html',
     styleUrl: './employee-form.css',
@@ -48,6 +50,7 @@ export class EmployeeFormComponent implements OnInit {
         first_name: '',
         last_name: '',
         email: '',
+        gender: 'male',
         department: 0,
         position: null,
     });
@@ -59,10 +62,12 @@ export class EmployeeFormComponent implements OnInit {
     });
 
     ngOnInit() {
-        this.departmentService.getDepartments().subscribe((depts) => {
-            this.departments.set(depts);
-
-            this.positionService.getPositions().subscribe((positions) => {
+        forkJoin([
+            this.departmentService.getDepartments(),
+            this.positionService.getPositions(),
+        ]).subscribe({
+            next: ([depts, positions]) => {
+                this.departments.set(depts);
                 this.allPositions.set(positions);
 
                 const id = this.route.snapshot.paramMap.get('id');
@@ -70,17 +75,15 @@ export class EmployeeFormComponent implements OnInit {
                     this.isEditMode.set(true);
                     this.loadEmployee(+id);
                 }
-            });
+            },
+            error: () => this.snackBar.open('Fehler beim Laden der Stammdaten.', 'OK', { duration: 4000 }),
         });
     }
 
     loadEmployee(id: number) {
         this.employeeService.getEmployee(id).subscribe({
             next: (data) => this.employee.set(data),
-            error: (err) => {
-                this.snackBar.open('Fehler beim Laden', 'OK');
-                console.error(err);
-            },
+            error: () => this.snackBar.open('Fehler beim Laden', 'OK'),
         });
     }
 
@@ -101,10 +104,7 @@ export class EmployeeFormComponent implements OnInit {
         if (this.isEditMode()) {
             this.employeeService.updateEmployee(data.id!, data).subscribe({
                 next: () => this.goBack('Gespeichert!'),
-                error: (err) => {
-                    console.error(err);
-                    this.snackBar.open('Fehler beim Speichern', 'OK');
-                },
+                error: () => this.snackBar.open('Fehler beim Speichern', 'OK'),
             });
         } else {
             this.employeeService.createEmployee(data).subscribe({
@@ -113,16 +113,13 @@ export class EmployeeFormComponent implements OnInit {
                         width: '450px',
                         disableClose: true,
                         data: {
-                            username: response.initial_username,
-                            password: response.initial_password,
+                            username: response.credentials.username,
+                            password: response.credentials.password,
                         },
                     });
                     ref.afterClosed().subscribe(() => this.goBack('Mitarbeiter angelegt!'));
                 },
-                error: (err) => {
-                    console.error(err);
-                    this.snackBar.open('Fehler beim Speichern', 'OK');
-                },
+                error: () => this.snackBar.open('Fehler beim Speichern', 'OK'),
             });
         }
     }

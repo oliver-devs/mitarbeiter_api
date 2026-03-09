@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -10,21 +11,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCardModule } from '@angular/material/card';
+import { NgTemplateOutlet } from '@angular/common';
 
 import { EmployeeService } from '../shared/employee.service';
 import { Employee } from '../shared/models';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog';
 import { AuthService } from '../auth/auth.service';
-
-interface EmployeeGroup {
-    name: string;
-    employees: Employee[];
-}
-
-interface AlphabeticalPositionGroup {
-    letter: string;
-    positions: EmployeeGroup[];
-}
+import { groupBy, groupAlphabetically } from '../shared/date-utils';
 
 @Component({
     selector: 'app-employee-list',
@@ -38,6 +31,7 @@ interface AlphabeticalPositionGroup {
         MatButtonToggleModule,
         MatExpansionModule,
         MatCardModule,
+        NgTemplateOutlet,
     ],
     templateUrl: './employee-list.html',
     styleUrl: './employee-list.css',
@@ -49,6 +43,7 @@ export class EmployeeListComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     readonly auth = inject(AuthService);
+    private readonly destroyRef = inject(DestroyRef);
 
     readonly employees = signal<Employee[]>([]);
     readonly searchQuery = signal('');
@@ -78,55 +73,20 @@ export class EmployeeListComponent implements OnInit {
     });
 
     readonly departmentGroups = computed(() =>
-        this.groupBy(this.filteredEmployees(), (emp) => emp.department_name || 'Ohne Abteilung'),
+        groupBy(this.filteredEmployees(), emp => emp.department_name || 'Ohne Abteilung'),
     );
 
-    readonly alphabeticalDepartmentGroups = computed<AlphabeticalPositionGroup[]>(() => {
-        const departments = this.departmentGroups();
-        const groupedByLetter = new Map<string, EmployeeGroup[]>();
-
-        for (const dept of departments) {
-            let letter = dept.name.charAt(0).toUpperCase();
-            if (!/[A-Z]/.test(letter)) {
-                letter = '#';
-            }
-
-            if (!groupedByLetter.has(letter)) {
-                groupedByLetter.set(letter, []);
-            }
-            groupedByLetter.get(letter)!.push(dept);
-        }
-
-        return [...groupedByLetter.entries()]
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([letter, positions]) => ({ letter, positions }));
-    });
+    readonly alphabeticalDepartmentGroups = computed(() =>
+        groupAlphabetically(this.departmentGroups(), g => g.name),
+    );
 
     private readonly positionGroups = computed(() =>
-        this.groupBy(this.filteredEmployees(), (emp) => emp.position_title || 'Ohne Position'),
+        groupBy(this.filteredEmployees(), emp => emp.position_title || 'Ohne Position'),
     );
 
-    readonly alphabeticalPositionGroups = computed<AlphabeticalPositionGroup[]>(() => {
-        const positions = this.positionGroups();
-        const groupedByLetter = new Map<string, EmployeeGroup[]>();
-
-        for (const pos of positions) {
-            let letter = pos.name.charAt(0).toUpperCase();
-            // Handle edge case where name might start with special char or number
-            if (!/[A-Z]/.test(letter)) {
-                letter = '#';
-            }
-
-            if (!groupedByLetter.has(letter)) {
-                groupedByLetter.set(letter, []);
-            }
-            groupedByLetter.get(letter)!.push(pos);
-        }
-
-        return [...groupedByLetter.entries()]
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([letter, positions]) => ({ letter, positions }));
-    });
+    readonly alphabeticalPositionGroups = computed(() =>
+        groupAlphabetically(this.positionGroups(), g => g.name),
+    );
 
     readonly availableLetters = computed(() => {
         const groups = this.currentView() === 'department'
@@ -151,7 +111,7 @@ export class EmployeeListComponent implements OnInit {
 
     ngOnInit() {
         this.loadEmployees();
-        this.route.queryParams.subscribe(params => {
+        this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
             const view = params['view'];
             if (view === 'department' || view === 'position') {
                 this.currentView.set(view);
@@ -170,17 +130,12 @@ export class EmployeeListComponent implements OnInit {
     }
 
     toggleLetter(letter: string) {
-        if (this.selectedLetter() === letter) {
-            this.selectedLetter.set(null);
-        } else {
-            this.selectedLetter.set(letter);
-        }
+        this.selectedLetter.set(this.selectedLetter() === letter ? null : letter);
     }
 
     loadEmployees() {
-        this.service.getEmployees().subscribe({
+        this.service.getAllEmployees().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (data) => this.employees.set(data),
-            error: (err) => console.error(err),
         });
     }
 
@@ -197,9 +152,12 @@ export class EmployeeListComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe((result) => {
             if (result === true) {
-                this.service.deleteEmployee(id).subscribe(() => {
-                    this.loadEmployees();
-                    this.snackBar.open('Gelöscht.', 'OK', { duration: 3000 });
+                this.service.deleteEmployee(id).subscribe({
+                    next: () => {
+                        this.loadEmployees();
+                        this.snackBar.open('Gelöscht.', 'OK', { duration: 3000 });
+                    },
+                    error: () => this.snackBar.open('Fehler beim Löschen.', 'OK', { duration: 4000 }),
                 });
             }
         });
@@ -210,15 +168,4 @@ export class EmployeeListComponent implements OnInit {
         this.searchQuery.set(filterValue);
     }
 
-    private groupBy(list: Employee[], keyFn: (emp: Employee) => string): EmployeeGroup[] {
-        const groups = new Map<string, Employee[]>();
-        for (const emp of list) {
-            const key = keyFn(emp);
-            if (!groups.has(key)) groups.set(key, []);
-            groups.get(key)!.push(emp);
-        }
-        return [...groups.entries()]
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([name, employees]) => ({ name, employees }));
-    }
 }
