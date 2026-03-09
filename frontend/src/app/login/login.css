@@ -103,10 +103,12 @@
 }
 
 .info-card {
-    background: var(--mat-sys-surface-container-lowest) !important;
-    border: 1px dashed var(--mat-sys-outline-variant) !important;
+    background: color-mix(in srgb, var(--mat-sys-surface-container-lowest) 65%, transparent) !important;
+    border: 1px dashed color-mix(in srgb, var(--mat-sys-outline-variant) 50%, transparent) !important;
     box-shadow: none !important;
     border-radius: 24px !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     height: 100%;
 }
 
