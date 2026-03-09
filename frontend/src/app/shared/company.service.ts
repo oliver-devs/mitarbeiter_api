@@ -12,7 +12,7 @@ export interface CompanyData {
     providedIn: 'root'
 })
 export class CompanyService {
-    private readonly STORAGE_KEY = 'hrsys_company_data';
+    private readonly STORAGE_KEY = 'spectrum_company_data';
 
     readonly companyData = signal<CompanyData>({
         name: 'PrismaLab',
