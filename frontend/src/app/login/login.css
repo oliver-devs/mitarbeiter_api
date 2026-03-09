@@ -21,13 +21,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 18px;
     margin-block-end: 24px;
 }
 
 .company-logo {
-    width: 48px;
+    width: 56px;
     aspect-ratio: 1;
+    flex-shrink: 0;
+}
+
+.company-text {
+    display: flex;
+    flex-direction: column;
 }
 
 .company-name {
@@ -36,6 +42,15 @@
     font-weight: 700;
     color: var(--mat-sys-on-surface);
     letter-spacing: 1px;
+    line-height: 1.2;
+}
+
+.company-slogan {
+    margin: 2px 0 0;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--mat-sys-on-surface-variant);
+    letter-spacing: 0.3px;
 }
 
 .software-info {
@@ -60,12 +75,6 @@
     letter-spacing: 0.5px;
 }
 
-.login-tagline {
-    margin: 8px 0 0;
-    font-size: 15px;
-    color: var(--mat-sys-on-surface-variant);
-    letter-spacing: 0.3px;
-}
 
 .login-grid {
     display: grid;

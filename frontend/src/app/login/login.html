@@ -2,14 +2,16 @@
     <header class="login-branding">
         <div class="company-info">
             <img src="/company-logo.svg" alt="Company Logo" class="company-logo" />
-            <h2 class="company-name">{{ companyService.companyData().name }}</h2>
+            <div class="company-text">
+                <h2 class="company-name">{{ companyService.companyData().name }}</h2>
+                <p class="company-slogan">Komplexes einfach machen.</p>
+            </div>
         </div>
-        
+
         <div class="software-info">
             <mat-icon class="login-logo">auto_awesome</mat-icon>
             <h1 class="login-app-name">{{ companyService.companyData().softwareName }}</h1>
         </div>
-        <p class="login-tagline">Komplexes einfach machen.</p>
     </header>
 
     <div class="login-grid">
