@@ -46,7 +46,7 @@ export class LoginComponent implements OnInit {
     private updateClock() {
         const now = new Date();
         this.currentTime.set(now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-        this.currentDate.set(now.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }));
+        this.currentDate.set(now.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
     }
 
     onLogin() {
