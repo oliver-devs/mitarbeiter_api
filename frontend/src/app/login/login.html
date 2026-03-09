@@ -1,4 +1,8 @@
 <section class="login-container">
+    <button mat-icon-button class="mode-toggle" (click)="toggleDarkMode()" aria-label="Dark/Light Mode umschalten">
+        <mat-icon>{{ themeService.isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+
     <div class="login-grid">
         <header class="login-branding">
             <div class="company-info">

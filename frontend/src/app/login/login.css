@@ -1,4 +1,5 @@
 .login-container {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -9,6 +10,29 @@
         var(--mat-sys-secondary-container) 100%);
     transition: background 0.3s ease;
     padding: 20px;
+}
+
+/* Light-Mode: kräftigerer blauer Gradient (statt fast-weiß) */
+:host-context(html:not(.dark)) .login-container {
+    background: linear-gradient(135deg, #b8d4f0 0%, #dfe9f5 50%, #c4d6ee 100%);
+}
+
+/* Mode Toggle — oben rechts */
+.mode-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: var(--mat-sys-on-surface-variant) !important;
+    background: color-mix(in srgb, var(--mat-sys-surface) 50%, transparent) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 40%, transparent) !important;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &:hover {
+        background: color-mix(in srgb, var(--mat-sys-surface) 70%, transparent) !important;
+        color: var(--mat-sys-on-surface) !important;
+    }
 }
 
 .company-info {
@@ -112,7 +136,7 @@
     border-radius: 24px !important;
     box-shadow: none !important;
     border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 50%, transparent) !important;
-    background: color-mix(in srgb, var(--mat-sys-surface) 75%, transparent) !important;
+    background: color-mix(in srgb, var(--mat-sys-surface) 45%, transparent) !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
 }
@@ -147,7 +171,7 @@
 
 /* Info Card */
 .login-info {
-    background: color-mix(in srgb, var(--mat-sys-surface-container-lowest) 65%, transparent) !important;
+    background: color-mix(in srgb, var(--mat-sys-surface-container-lowest) 45%, transparent) !important;
     border: 1px dashed color-mix(in srgb, var(--mat-sys-outline-variant) 50%, transparent) !important;
     box-shadow: none !important;
     border-radius: 24px !important;
@@ -226,4 +250,41 @@
     color: var(--mat-sys-on-surface-variant);
     text-align: center;
     opacity: 0.7;
+}
+
+/* Light-Mode: Texte und Cards auf blauem Hintergrund anpassen */
+:host-context(html:not(.dark)) .company-name {
+    color: #1a2a4a;
+}
+
+:host-context(html:not(.dark)) .company-slogan {
+    color: #3a5070;
+}
+
+:host-context(html:not(.dark)) .login-app-name {
+    color: #1a2a4a;
+}
+
+:host-context(html:not(.dark)) .login-logo {
+    color: #1a5ba8;
+}
+
+:host-context(html:not(.dark)) .login-card {
+    background: color-mix(in srgb, #ffffff 45%, transparent) !important;
+    border-color: color-mix(in srgb, #8aabcf 30%, transparent) !important;
+}
+
+:host-context(html:not(.dark)) .login-info {
+    background: color-mix(in srgb, #ffffff 35%, transparent) !important;
+    border-color: color-mix(in srgb, #8aabcf 30%, transparent) !important;
+}
+
+:host-context(html:not(.dark)) .login-footer {
+    color: #3a5070;
+}
+
+:host-context(html:not(.dark)) .mode-toggle {
+    background: color-mix(in srgb, #ffffff 50%, transparent) !important;
+    color: #3a5070 !important;
+    border-color: color-mix(in srgb, #8aabcf 30%, transparent) !important;
 }
