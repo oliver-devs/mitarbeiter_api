@@ -1,6 +1,6 @@
-# ClockIn – HR & Zeiterfassung (UI/UX Concept Study)
+# HRIS Concept – HR & Zeiterfassung (UI/UX Concept Study)
 
-**ClockIn** (fiktiv entwickelt für die "Nexus Dynamics GmbH") ist eine webbasierte Unternehmens-Software zur Verwaltung von Mitarbeitern, Abwesenheiten und Arbeitszeiten.
+**HRIS Concept** (fiktiv entwickelt für die "Nexus Dynamics GmbH") ist eine webbasierte Unternehmens-Software zur Verwaltung von Mitarbeitern, Abwesenheiten und Arbeitszeiten. Der App-Name ist über die Einstellungen frei konfigurierbar (White-Labeling).
 
 > **Kernfokus dieses Projekts:**
 > Dieses Projekt dient in erster Linie als **UI/UX-Showcase und Konzeptstudie**. Der Schwerpunkt liegt nicht primär auf komplexer Backend-Logik, sondern auf der Frage: *"Wie muss eine moderne, intuitive und enterprise-taugliche Software für Endanwender gestaltet sein?"*
