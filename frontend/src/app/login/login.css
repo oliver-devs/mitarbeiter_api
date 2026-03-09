@@ -70,11 +70,12 @@
     text-transform: uppercase;
 }
 
-/* Grid — 2x2: Branding oben links, Login unten links, Info+Footer rechts */
+/* Grid — Branding oben links, Cards mitte, Footer unten zentriert */
 .login-grid {
     display: grid;
     grid-template-columns: 380px 320px;
     grid-template-rows: auto 1fr auto;
+    align-items: stretch;
     gap: 0 24px;
 
     @media (max-width: 800px) {
@@ -87,20 +88,22 @@
 .login-branding {
     grid-column: 1;
     grid-row: 1;
-    margin-block-end: 32px;
+    padding-block-end: 32px;
 }
 
 .login-card {
     grid-column: 1;
-    grid-row: 2 / 4;
+    grid-row: 2;
 }
 
-.info-column {
+.login-info {
     grid-column: 2;
-    grid-row: 2 / 4;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    grid-row: 2;
+}
+
+.login-footer {
+    grid-column: 2;
+    grid-row: 3;
 }
 
 /* Login Card — Styles (Position ist im Grid oben definiert) */
@@ -142,8 +145,7 @@
     border-radius: 24px;
 }
 
-/* Info Column — Card + Footer (Position ist im Grid oben definiert) */
-
+/* Info Card */
 .login-info {
     background: color-mix(in srgb, var(--mat-sys-surface-container-lowest) 65%, transparent) !important;
     border: 1px dashed color-mix(in srgb, var(--mat-sys-outline-variant) 50%, transparent) !important;
@@ -151,7 +153,8 @@
     border-radius: 24px !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    flex: 1;
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .info-content {
@@ -215,8 +218,9 @@
     color: var(--mat-sys-on-surface-variant);
 }
 
-/* Footer — zentriert unter der Info-Card */
+/* Footer — zentriert unter beiden Cards */
 .login-footer {
+    padding-block-start: 16px;
     font-size: 12px;
     font-weight: 400;
     color: var(--mat-sys-on-surface-variant);
