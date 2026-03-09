@@ -3,17 +3,20 @@
         <mat-sidenav mode="side" opened class="sidenav">
             <header class="sidenav-header">
                 <div class="branding-section">
-                    <img 
-                        [src]="companyService.companyData().logoUrl || '/company-logo.svg'" 
-                        alt="Company Logo" 
-                        class="company-logo-small" 
+                    <img
+                        [src]="companyService.companyData().logoUrl || '/company-logo.svg'"
+                        alt="Company Logo"
+                        class="company-logo-small"
                     />
                     <div class="branding-text">
                         <span class="company-title">{{ companyService.companyData().name }}</span>
-                        <div class="software-info">
-                            <span class="software-title">{{ companyService.companyData().softwareName }}</span>
-                        </div>
+                        <span class="company-slogan">Komplexes einfach machen.</span>
                     </div>
+                </div>
+
+                <div class="software-info">
+                    <mat-icon class="software-logo">auto_awesome</mat-icon>
+                    <span class="software-title">{{ companyService.companyData().softwareName }}</span>
                 </div>
 
                 @if (auth.currentUser(); as user) {

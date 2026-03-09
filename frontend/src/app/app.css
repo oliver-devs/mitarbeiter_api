@@ -12,14 +12,20 @@ body {
 
 .sidenav-container {
     height: 100dvh;
-    background-color: transparent;
+    background: linear-gradient(160deg,
+        var(--mat-sys-primary-container) 0%,
+        var(--mat-sys-surface) 40%,
+        var(--mat-sys-surface-container-low) 100%);
 }
 
 .sidenav {
     width: 280px;
-    background-color: var(--mat-sys-surface);
-    border-inline-end: none;
-    box-shadow: 4px 0 24px rgb(0 0 0 / 8%);
+    background: color-mix(in srgb, var(--mat-sys-surface) 45%, transparent) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-inline-end: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 40%, transparent) !important;
+    border-radius: 0 !important;
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
@@ -29,8 +35,8 @@ body {
     display: flex;
     flex-direction: column;
     padding: 32px 20px 24px;
-    background-color: var(--mat-sys-surface);
-    border-block-end: 1px solid var(--mat-sys-outline-variant);
+    background: transparent;
+    border-block-end: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 40%, transparent);
     flex-shrink: 0;
     gap: 24px;
 }
@@ -65,24 +71,36 @@ body {
     text-overflow: ellipsis;
 }
 
+.company-slogan {
+    font-size: 11px;
+    font-weight: 200;
+    color: var(--mat-sys-on-surface-variant);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .software-info {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 8px;
+    padding-inline: 8px;
 }
 
 .software-logo {
     color: var(--mat-sys-primary);
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
 }
 
 .software-title {
-    font-size: 13px;
+    font-size: 17px;
     font-weight: 500;
-    color: var(--mat-sys-on-surface-variant);
-    letter-spacing: 0.5px;
+    color: var(--mat-sys-on-surface);
+    letter-spacing: 8px;
     text-transform: uppercase;
 }
 
@@ -90,14 +108,14 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    background-color: var(--mat-sys-surface-container-low);
+    background: color-mix(in srgb, var(--mat-sys-surface-container-low) 60%, transparent);
     padding: 12px 16px;
     border-radius: 12px;
-    border: 1px solid var(--mat-sys-outline-variant);
-    transition: background-color 0.2s ease;
+    border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 40%, transparent);
+    transition: background 0.2s ease;
 
     &:hover {
-        background-color: var(--mat-sys-surface-container);
+        background: color-mix(in srgb, var(--mat-sys-surface-container) 70%, transparent);
     }
 }
 
@@ -206,12 +224,16 @@ body {
     font-weight: 700;
     letter-spacing: 1.2px;
     text-transform: uppercase;
-    padding: 24px 0 8px 28px;
+    padding: 20px 0 8px 28px;
+
+    &:first-child {
+        padding-block-start: 4px;
+    }
 }
 
 mat-divider {
-    margin: 8px 24px !important;
-    border-top-color: var(--mat-sys-outline-variant);
+    margin: 12px 24px 0 !important;
+    border-top-color: color-mix(in srgb, var(--mat-sys-outline-variant) 50%, transparent);
 }
 
 .menu-spacer {
@@ -239,8 +261,31 @@ mat-divider {
 }
 
 .main-content {
-    background-color: var(--mat-sys-surface-container-low);
+    background: transparent;
     padding: 0;
+}
+
+/* Light-Mode: Blauer Gradient wie auf Login-Page */
+:host-context(html:not(.dark)) .sidenav-container {
+    background: linear-gradient(160deg, #c2d8f0 0%, #e4ecf5 40%, #edf1f6 100%);
+}
+
+:host-context(html:not(.dark)) .sidenav {
+    background: color-mix(in srgb, #ffffff 45%, transparent) !important;
+    border-color: color-mix(in srgb, #8aabcf 25%, transparent) !important;
+}
+
+:host-context(html:not(.dark)) .sidenav-header {
+    border-color: color-mix(in srgb, #8aabcf 25%, transparent);
+}
+
+:host-context(html:not(.dark)) .user-section {
+    background: color-mix(in srgb, #ffffff 45%, transparent);
+    border-color: color-mix(in srgb, #8aabcf 25%, transparent);
+
+    &:hover {
+        background: color-mix(in srgb, #ffffff 60%, transparent);
+    }
 }
 
 .login-wrapper {
